@@ -1,34 +1,70 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.dreamershk.projectshiritori.util.MultiPlayerGameActivity">
+
+    tools:context="com.dreamershk.projectshiritori.MultiPlayerGameActivity">
 
     //Status Bar: score, life, round
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
-        android:background="#e3e3e3"
         android:orientation="horizontal">
-
         <TextView
+            android:id="@+id/tv_score"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:text="001"/>
+            android:text="00"
+            android:layout_weight="1"
+            android:gravity="center_vertical|center_horizontal"
+            android:textStyle="bold"
+            android:textSize="25dp" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:gravity="center">
+            <ImageView
+                android:id="@+id/image_life1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_favorite_black_24dp"/>
+            <ImageView
+                android:id="@+id/image_life2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_favorite_black_24dp"/>
+            <ImageView
+                android:id="@+id/image_life3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_favorite_black_24dp"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/tv_round"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="1"
+            android:layout_weight="1"
+            android:gravity="center_vertical|center_horizontal"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:typeface="serif"
+            />
     </LinearLayout>
 
     //Display remaining time
+    //max: maximum progress
+    //progress: default progress
     <ProgressBar
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:id="@+id/pb_remaining_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:indeterminate="false"
         android:max="100"
-        android:progress="20"/>
+        android:progress="1"/>
 
     //Main Game Window: display text
     <RelativeLayout
@@ -36,14 +72,15 @@
         android:layout_height="0dip"
         android:layout_weight="1"
         android:paddingLeft="10dp"
-        android:paddingRight="10dp">
+        android:paddingRight="10dp"
+        android:background="@drawable/cloud">
         <ListView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/activity_single_game_list">
+            android:id="@+id/listview_multiplayer_bubbles">
         </ListView>
         <TextView
-            android:id="@+id/activity_single_game_txt_emptyview"
+            android:id="@+id/emptyview_listview_multiplayer_bubbles"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
@@ -56,25 +93,39 @@
 
     //Bottom bar: hidden action, enter text, send button.
     <LinearLayout
+        android:id="@+id/linear_layout_bottom_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0"
         android:orientation="horizontal"
-        android:paddingLeft="6dp"
-        android:paddingRight="6dp">
+        android:background="#FFFFFF">
 
         <ImageButton
+            android:id="@+id/ib_action"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:background="#FFFFFF"
             android:src="@drawable/ic_arrow_drop_up_black_36dp"
             android:paddingRight="3dp"/>
-        <EditText
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+        <LinearLayout
             android:layout_width="0dp"
-            />
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+            <EditText
+                android:id="@+id/et_lastChar"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="我"
+                android:editable="false"/>
+            <EditText
+                android:id="@+id/et_input"
+                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                />
+        </LinearLayout>
+
         <ImageButton
+            android:id="@+id/ib_send"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:background="#FFFFFF"

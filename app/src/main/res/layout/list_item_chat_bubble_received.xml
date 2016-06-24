@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="5dp"
+    android:paddingTop="5dp">
+
+    <ImageView
+        android:id="@+id/image_profile_icon"
+        android:paddingLeft="10dp"
+        android:paddingRight="5dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/default_profile_icon"/>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:background="@drawable/balloon_incoming_normal"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/image_profile_icon">
+
+        <LinearLayout
+            android:id="@+id/linear_layout_chat_bubble"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_chat_bubble_received_author"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="20dp"
+                android:paddingRight="8dp"
+                android:paddingTop="5dp"
+                android:textStyle="bold"
+                android:text="User1"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tv_chat_bubble_received_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:paddingLeft="20dp"
+                android:paddingBottom="5dp"
+                android:autoLink="web"
+                android:maxWidth="280dp"
+                android:text="仔大仔世界"
+                android:textColor="#f7030303" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/tv_chat_bubble_received_life"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:src="@drawable/ic_favorite_black_18dp"
+            android:layout_toRightOf="@+id/linear_layout_chat_bubble"
+            android:layout_alignParentTop="false"
+            android:layout_alignParentLeft="false"
+            android:layout_alignTop="@+id/linear_layout_chat_bubble" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

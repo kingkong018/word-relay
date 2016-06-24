@@ -7,4 +7,9 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="button_abstain">棄權</string>
+    <string name="button_skip">略過</string>
+    <string name="button_reverse">逆轉</string>
+    <string name="button_help">求救</string>
+    <string name="button_assign">點名</string>
 </resources>

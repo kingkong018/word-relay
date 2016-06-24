@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="5dp"
+    android:paddingTop="5dp">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:background="@drawable/balloon_outgoing_normal"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@id/image_profile_icon"
+        android:layout_alignParentRight="true">
+
+        <LinearLayout
+            android:id="@+id/linear_layout_chat_bubble"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_chat_bubble_sent_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:paddingTop="8dp"
+                android:paddingLeft="10dp"
+                android:paddingBottom="3dp"
+                android:paddingRight="20dp"
+                android:autoLink="web"
+                android:maxWidth="280dp"
+                android:text="超級無敵奬門人"
+                android:textColor="#040404" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</RelativeLayout>
