@@ -2,6 +2,7 @@ package com.dreamershk.projectshiritori;
 
 import android.content.DialogInterface;
 import android.graphics.Point;
+import android.os.CountDownTimer;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,12 +26,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dreamershk.projectshiritori.model.BubbleDetail;
+import com.dreamershk.projectshiritori.model.Player;
 import com.dreamershk.projectshiritori.model.UserType;
 
 import java.util.ArrayList;
 
 
-public class MultiPlayerGameActivity extends AppCompatActivity {
+public class MultiPlayerActivity extends AppCompatActivity {
     //UI elements
     ProgressBar pb;
     EditText et_input, et_lastChar;
@@ -44,10 +46,11 @@ public class MultiPlayerGameActivity extends AppCompatActivity {
     //Game playUtility
     private ArrayList<String> database = new ArrayList<>(); //store all the stored word.
     private ArrayList<String> history = new ArrayList<>(); //store all the users' valid et_input
+    Thread aiThread;
     int maxTime = 30;
-    Thread timerThread, aiThread;
-    boolean isTimerStop = false;
+    CountDownTimer countDownTimer;
     //Player
+    private ArrayList<Player> playerQueue = new ArrayList<Player>();
     Player player = new Player();
     protected void onStart(){
         super.onStart();
@@ -86,10 +89,10 @@ public class MultiPlayerGameActivity extends AppCompatActivity {
         //Set up database
         database = LoadDatabase.getDatabase(getApplicationContext());
         if (database.isEmpty()){
-            Toast.makeText(MultiPlayerGameActivity.this, "資料庫載入失敗", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MultiPlayerActivity.this, "資料庫載入失敗", Toast.LENGTH_SHORT).show();
             finish();
         } else
-            Toast.makeText(MultiPlayerGameActivity.this, "成功載入資料庫", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MultiPlayerActivity.this, "成功載入資料庫", Toast.LENGTH_SHORT).show();
         //Set up textfields: tv_score, tv_round
         tv_score = (TextView)findViewById(R.id.tv_score);
         tv_round = (TextView)findViewById(R.id.tv_round);
@@ -157,45 +160,24 @@ public class MultiPlayerGameActivity extends AppCompatActivity {
 
     //Why synchornized? concurreny: isTimerStop
     private synchronized void setTimer(){
-        timerThread = null;
-        isTimerStop = false;
         startTimer(maxTime);
     }
     //Count down for "time", and update the time progress bar.
     //Default time is 30 seconds.
     private void startTimer(int time){
-        final int maxTime = time;
-        timerThread = new Thread(){
-            float currentTime = 0;
+        countDownTimer = new CountDownTimer(maxTime, 100) {
             @Override
-            public void run() {
-                while (currentTime < maxTime && !isTimerStop){
-                    try{
-                        sleep(100);
-                        currentTime += 0.1;
-                        final int progress = (int)(currentTime/maxTime*100);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                pb.setProgress(progress);
-                            }
-                        });
-                    }catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        return; //interrupted by main thread
-                    }
-                    if (currentTime >= maxTime){
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                exceedTime();
-                            }
-                        });
-                    }
-                }
+            public void onTick(long millisUntilFinished) {
+                long currentTime = maxTime - millisUntilFinished/1000;
+                int progress = (int)(currentTime/maxTime*100);
+                pb.setProgress(progress);
+            }
+            @Override
+            public void onFinish() {
+                //
             }
         };
-        timerThread.start();
+        countDownTimer.start();
     }
     private void exceedTime(){
         lifeDrop();
@@ -203,14 +185,7 @@ public class MultiPlayerGameActivity extends AppCompatActivity {
         playByComputer();
     }
     //Why synchornized? concurreny: isTimerStop
-    private synchronized void pauseTimer(){
-        isTimerStop = true;
-        try{
-            timerThread.join();
-        }catch (InterruptedException e){
-            e.printStackTrace();
-        }
-    }
+
     private void hidePopupWindow(){
         if (isPopupWindowClicked){
             popupWindow4Action.dismiss();
@@ -290,9 +265,12 @@ public class MultiPlayerGameActivity extends AppCompatActivity {
             boolean isValid = GameRulesHandler.isValid(history, answer);
 
             if (isAWord && !isExist && isValid) {
-                pauseTimer();
+                //how to stop the timer...?
+                countDownTimer.cancel();
+                //update player status
                 player.scoreIncrement(answer.length());
                 player.roundIncrement();
+
                 history.add(answer);
                 // update player status
                 updateUI4Submission();
@@ -303,11 +281,11 @@ public class MultiPlayerGameActivity extends AppCompatActivity {
                 lifeDrop();
                 updateStatusBar();
                 if (!isAWord)
-                    Toast.makeText(MultiPlayerGameActivity.this, "我唔係叫你倉頡造字啊...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MultiPlayerActivity.this, "我唔係叫你倉頡造字啊...", Toast.LENGTH_SHORT).show();
                 if (isExist)
-                    Toast.makeText(MultiPlayerGameActivity.this, "重覆啊!記憶力有無咁差啊!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MultiPlayerActivity.this, "重覆啊!記憶力有無咁差啊!", Toast.LENGTH_SHORT).show();
                 if (!isValid)
-                    Toast.makeText(MultiPlayerGameActivity.this, "跟規距玩啦大佬..", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MultiPlayerActivity.this, "跟規距玩啦大佬..", Toast.LENGTH_SHORT).show();
                 //addChatItem(current_player.getName(),"[回答錯誤]",current_player.getChance(),current_player.getScore(),current_player.getRound());
             }
             //check chance is 0 or not; if yes, game ends.
@@ -322,7 +300,7 @@ public class MultiPlayerGameActivity extends AppCompatActivity {
         playByComputer();
     }
     private void abstain(){
-        pauseTimer();
+        countDownTimer.cancel();
         lifeDrop();
         updateStatusBar();
         playByComputer();
@@ -364,7 +342,7 @@ public class MultiPlayerGameActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if (showAlertDialog) {
-                            new AlertDialog.Builder(MultiPlayerGameActivity.this)
+                            new AlertDialog.Builder(MultiPlayerActivity.this)
                                     .setTitle("...我諗唔到")
                                     .setMessage("新詞語! - " + s)
                                     .show();
@@ -393,11 +371,10 @@ public class MultiPlayerGameActivity extends AppCompatActivity {
     private void endGame(){
         hidePopupWindow(); //prevent leaked window
         //Stop all thread
-        timerThread.interrupt();
         aiThread.interrupt();
 
         //hint.setText("你無曬機會!");
-        new AlertDialog.Builder(MultiPlayerGameActivity.this)
+        new AlertDialog.Builder(MultiPlayerActivity.this)
                 .setTitle("遊戲結束")
                 .setMessage("無鬼用! 咁就諗唔到接咩詞語!\n 你既分數係" + player.getScore() + "分, 玩左" + player.getRound() + "個回合!\n 下次再挑戰我啦!")
                 .setCancelable(false)

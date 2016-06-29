@@ -12,4 +12,5 @@
     <string name="button_reverse">逆轉</string>
     <string name="button_help">求救</string>
     <string name="button_assign">點名</string>
+    <string name="title_activity_game_window">GameWindow</string>
 </resources>

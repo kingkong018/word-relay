@@ -51,17 +51,31 @@
         </LinearLayout>
 
         <ImageView
-            android:id="@+id/tv_chat_bubble_received_life"
+            android:id="@+id/tv_chat_bubble_received_life1"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:layout_marginLeft="10dp"
-            android:paddingRight="10dp"
             android:paddingTop="5dp"
             android:src="@drawable/ic_favorite_black_18dp"
             android:layout_toRightOf="@+id/linear_layout_chat_bubble"
             android:layout_alignParentTop="false"
             android:layout_alignParentLeft="false"
             android:layout_alignTop="@+id/linear_layout_chat_bubble" />
+        <ImageView
+            android:id="@+id/tv_chat_bubble_received_life2"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:paddingTop="5dp"
+            android:src="@drawable/ic_favorite_black_18dp"
+            android:layout_toRightOf="@+id/tv_chat_bubble_received_life1" />
+        <ImageView
+            android:id="@+id/tv_chat_bubble_received_life3"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:src="@drawable/ic_favorite_black_18dp"
+            android:layout_toRightOf="@+id/tv_chat_bubble_received_life2" />
 
     </RelativeLayout>
 

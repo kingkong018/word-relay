@@ -13,7 +13,6 @@ import java.util.ArrayList;
  */
 public class LoadDatabase {
     private static ArrayList<String> word_database = new ArrayList<String>();
-
     public static ArrayList<String> getDatabase(Context context){
         if (word_database.isEmpty()) {
             try{

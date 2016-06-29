@@ -32,11 +32,15 @@ public class GameBubblesAdapter extends BaseAdapter {
 
     public void addBubble(BubbleDetail bubble){
         bubbleDetailArrayList.add(bubble);
-        notifyDataSetChanged();
     }
     public void addBubble(UserType type, String author, String message, int life){
         BubbleDetail b = new BubbleDetail(type,author,message,life);
         addBubble(b);
+    }
+
+    @Override
+    public boolean isEnabled(int position) {
+        return false;
     }
 
     @Override
@@ -58,13 +62,13 @@ public class GameBubblesAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         View v = null;
         BubbleDetail bubble = bubbleDetailArrayList.get(position);
-        ViewTagOther viewTagOther;
-        ViewTagSelf viewTagSelf;
+        ViewTagOther viewTagOther = new ViewTagOther();
+        ViewTagSelf viewTagSelf = new ViewTagSelf();
+        ViewTagSystem viewTagSystem = new ViewTagSystem();
 
         if (bubble.getUserType() == UserType.SELF) {
-            if (convertView == null) {
+            if (convertView == null || !convertView.getTag().equals(viewTagSelf)) {
                 v = LayoutInflater.from(context).inflate(R.layout.list_item_chat_bubble_sent, null, false);
-                viewTagSelf = new ViewTagSelf();
                 viewTagSelf.message = (TextView) v.findViewById(R.id.tv_chat_bubble_sent_message);
                 v.setTag(viewTagSelf);
             } else {
@@ -72,13 +76,14 @@ public class GameBubblesAdapter extends BaseAdapter {
                 viewTagSelf = (ViewTagSelf)v.getTag();
             }
             viewTagSelf.message.setText(bubble.getMessage());
-        } else if (bubble.getUserType() == UserType.OTHER || bubble.getUserType() == UserType.SYSTEM) {
-            if (convertView == null) {
+        } else if (bubble.getUserType() == UserType.OTHER) {
+            if (convertView == null || !convertView.getTag().equals(viewTagOther) ) {
                 v = LayoutInflater.from(context).inflate(R.layout.list_item_chat_bubble_received, null, false);
-                viewTagOther = new ViewTagOther();
                 viewTagOther.author = (TextView) v.findViewById(R.id.tv_chat_bubble_received_author);
                 viewTagOther.message = (TextView) v.findViewById(R.id.tv_chat_bubble_received_message);
-                //tag.tv_life ....
+                viewTagOther.life1 = (ImageView)v.findViewById(R.id.tv_chat_bubble_received_life1);
+                viewTagOther.life2 = (ImageView)v.findViewById(R.id.tv_chat_bubble_received_life2);
+                viewTagOther.life3 = (ImageView)v.findViewById(R.id.tv_chat_bubble_received_life3);
                 v.setTag(viewTagOther);
             } else {
                 v = convertView;
@@ -86,15 +91,52 @@ public class GameBubblesAdapter extends BaseAdapter {
             }
             viewTagOther.author.setText(bubble.getAuthor());
             viewTagOther.message.setText(bubble.getMessage());
+            int c = bubble.getLife();
+            switch(c){
+                case 0:
+                    viewTagOther.life1.setImageResource(R.drawable.ic_favorite_border_black_18dp);
+                    viewTagOther.life2.setImageResource(R.drawable.ic_favorite_border_black_18dp);
+                    viewTagOther.life3.setImageResource(R.drawable.ic_favorite_border_black_18dp);
+                    break;
+                case 1:
+                    viewTagOther.life1.setImageResource(R.drawable.ic_favorite_black_18dp);
+                    viewTagOther.life2.setImageResource(R.drawable.ic_favorite_border_black_18dp);
+                    viewTagOther.life3.setImageResource(R.drawable.ic_favorite_border_black_18dp);
+                    break;
+                case 2:
+                    viewTagOther.life1.setImageResource(R.drawable.ic_favorite_black_18dp);
+                    viewTagOther.life2.setImageResource(R.drawable.ic_favorite_black_18dp);
+                    viewTagOther.life3.setImageResource(R.drawable.ic_favorite_border_black_18dp);
+                    break;
+                default:
+                    viewTagOther.life1.setImageResource(R.drawable.ic_favorite_black_18dp);
+                    viewTagOther.life2.setImageResource(R.drawable.ic_favorite_black_18dp);
+                    viewTagOther.life3.setImageResource(R.drawable.ic_favorite_black_18dp);
+            }
+        } else if (bubble.getUserType() == UserType.SYSTEM){
+            if (convertView == null || !convertView.getTag().equals(viewTagSystem) ) {
+                v = LayoutInflater.from(context).inflate(R.layout.list_item_chat_bubble_system, null, false);
+                viewTagSystem.author = (TextView) v.findViewById(R.id.tv_chat_bubble_system_author);
+                viewTagSystem.message = (TextView) v.findViewById(R.id.tv_chat_bubble_system_message);
+                v.setTag(viewTagSystem);
+            } else {
+                v = convertView;
+                viewTagSystem = (ViewTagSystem)v.getTag();
+            }
+            viewTagSystem.author.setText("系統");
+            viewTagSystem.message.setText(bubble.getMessage());
         }
         return v;
     }
 
     class ViewTagOther{
         TextView author, message;
-        ImageView life;
+        ImageView life1, life2, life3;
     }
     class ViewTagSelf{
         TextView message;
+    }
+    class ViewTagSystem{
+        TextView author, message;
     }
 }
