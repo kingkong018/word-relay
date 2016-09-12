@@ -1,26 +1,21 @@
 package com.dreamershk.projectshiritori;
 
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.dreamershk.projectshiritori.model.Player;
 
 /**
- * Created by Windows7 on 26/6/2016.
+ * Created by Windows7 on 24/7/2016.
  */
-public class SinglePlayerGameWindow extends GameWindow {
-    String log_name = "SINGLEGAMEWINDOW";
+public class SinglePlayerGameWindowWithAudio extends GameWindowWithAudio{
+
+    String log_name = "SINGLEGAMEWINDOWWITHAUDIO";
     private SinglePlayerGameManager gameManager;
-    public static boolean isSinglePlayerGameWindowActivityRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        isSinglePlayerGameWindowActivityRunning = true;
         super.onCreate(savedInstanceState);
         final GameView g = this;
         final Context c = getApplicationContext();
@@ -53,33 +48,5 @@ public class SinglePlayerGameWindow extends GameWindow {
             computer.setPlayerType(Player.TYPE_COMPUTER);
             gameManager.addGameView(null, computer); //add computer player
         }
-        /*new AsyncTask<Void, Void, String>(){
-            @Override
-            protected void onPreExecute() {
-                //Add loading screen?
-                loadingDialog = new ProgressDialog(SinglePlayerGameWindow.this);
-                loadingDialog.setMessage("Loading...");
-                loadingDialog.setCancelable(false);
-                loadingDialog.setInverseBackgroundForced(false);
-                loadingDialog.show();
-            }
-
-            @Override
-            protected String doInBackground(Void... params) {
-                gameManager.addGameView(g, "Player1");
-                //context should be set after host player is in the player queue.
-                gameManager.setContext(c);
-                gameManager.addGameView(null, "電腦"); //add computer player
-                return null;
-            }
-        }.execute();*/
-        //after adding the computer player, the game starts.
-    }
-
-    @Override
-    protected void onDestroy() {
-        Log.d(log_name, "Activity destroyed.");
-        isSinglePlayerGameWindowActivityRunning = false;
-        super.onDestroy();
     }
 }

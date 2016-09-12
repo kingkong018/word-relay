@@ -1,12 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    tools:context="com.dreamershk.projectshiritori.GameWindowWithCanva"
+    android:background="@drawable/background">
 
-    tools:context=".MultiPlayerActivity">
 
-    //Status Bar: score, life, round
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -63,9 +64,14 @@
         android:id="@+id/pb_remaining_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp"
+        android:background="#E0E0E0"
         android:indeterminate="false"
         android:max="100"
-        android:progress="1"/>
+        android:progress="1"
+        android:maxHeight="500dp"
+        android:progressDrawable="@drawable/timer_progress" />
 
     //Main Game Window: display text
     <RelativeLayout
@@ -74,23 +80,50 @@
         android:layout_weight="1"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
-        android:background="@drawable/cloud">
-        <ListView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/listview_multiplayer_bubbles">
-        </ListView>
-        <TextView
-            android:id="@+id/emptyview_listview_multiplayer_bubbles"
+        android:id="@+id/relative_layout_canva">
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:textSize="45sp"
-            android:text="Please re-start."
-            android:visibility="visible"/>
+            android:orientation="horizontal"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="6dp"
+            android:gravity="center_vertical"
+            android:id="@+id/linearLayout2">
+            <android.support.design.widget.FloatingActionButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_markunread_mailbox_white_36dp"
+                android:id="@+id/floating_button_system_message"
+                android:visibility="gone" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="4dp"
+                android:id="@+id/txt_system_message"
+                android:hint="This is where the system message locates. Testing for three lines. I think 2 lines is better."
+                android:paddingLeft="4dp"
+                android:background="#faf8f6dc"
+                android:text="avc"
+                android:gravity="center_vertical|center_horizontal"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
     </RelativeLayout>
+
+    <include
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/popup_window_for_game_action"
+        android:id="@+id/pop_up_window"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0"
+        />
 
     //Bottom bar: hidden action, enter text, send button.
     <LinearLayout
@@ -98,14 +131,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="#FFFFFF">
+        android:background="#FFFFFF"
+        android:visibility="gone">
 
         <ImageButton
             android:id="@+id/ib_action"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="#FFFFFF"
-            android:src="@drawable/ic_arrow_drop_up_black_36dp"
+            android:background="#ffffff"
+            android:src="@drawable/ic_open_in_browser_black_36dp"
             android:paddingRight="3dp"/>
         <LinearLayout
             android:layout_width="0dp"
@@ -115,8 +149,7 @@
                 android:id="@+id/et_lastChar"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:text="我"
-                android:editable="false"/>
+                android:inputType="none"/>
             <EditText
                 android:id="@+id/et_input"
                 android:layout_height="wrap_content"
@@ -132,6 +165,17 @@
             android:background="#FFFFFF"
             android:src="@drawable/ic_send_black_36dp"
             android:paddingLeft="3dp"/>
+
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#8e2eb8ab"
+        android:gravity="center_vertical|center_horizontal"
+        android:id="@+id/linear_layout_queue_bar"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+    </LinearLayout>
 </LinearLayout>

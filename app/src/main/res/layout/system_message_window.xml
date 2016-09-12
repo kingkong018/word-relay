@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp">
+
+
+    <TextView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:textAppearance="?android:attr/textAppearanceLarge"
+         android:text="系統訊息"
+         android:gravity="center_horizontal"
+         android:background="@color/accent_material_light"
+         android:textColor="#ffffff"
+         android:textStyle="bold" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="125dp"
+        android:id="@+id/scrollView"
+        android:fillViewport="true"
+        android:scrollIndicators="start"
+        android:scrollbars="vertical">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/txt_all_system_messages"
+            android:background="@color/accent_material_dark"
+            android:textColor="@color/bright_foreground_inverse_material_light"
+            android:text="遊戲開始。"
+            android:hint="1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:paddingBottom="1dp"
+            android:paddingTop="1dp" />
+    </ScrollView>
+</LinearLayout>

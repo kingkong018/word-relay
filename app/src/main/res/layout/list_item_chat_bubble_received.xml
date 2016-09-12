@@ -4,7 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingBottom="5dp"
-    android:paddingTop="5dp">
+    android:paddingTop="6dp"
+    android:gravity="center_vertical"
+    android:id="@+id/relative_layout_chat_bubble_received">
 
     <ImageView
         android:id="@+id/image_profile_icon"
@@ -12,20 +14,22 @@
         android:paddingRight="5dp"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:src="@drawable/default_profile_icon"/>
+        android:src="@drawable/default_profile_icon"
+        android:layout_centerVertical="true" />
 
     <RelativeLayout
+        android:id="@+id/relative_layout_chat_bubble_received_detail"
         android:layout_width="wrap_content"
         android:background="@drawable/balloon_incoming_normal"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/image_profile_icon">
-
+        android:layout_toRightOf="@+id/image_profile_icon"
+        android:visibility="visible"
+        android:layout_centerVertical="true">
         <LinearLayout
-            android:id="@+id/linear_layout_chat_bubble"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/linearLayout"
             android:orientation="vertical">
-
             <TextView
                 android:id="@+id/tv_chat_bubble_received_author"
                 android:layout_width="wrap_content"
@@ -34,9 +38,9 @@
                 android:paddingRight="8dp"
                 android:paddingTop="5dp"
                 android:textStyle="bold"
-                android:text="User1"
-                android:textSize="16sp" />
-
+                android:text="ppppppppppppp"
+                android:textSize="16sp"
+                android:layout_alignParentTop="false" />
             <TextView
                 android:id="@+id/tv_chat_bubble_received_message"
                 android:layout_width="wrap_content"
@@ -47,36 +51,99 @@
                 android:autoLink="web"
                 android:maxWidth="280dp"
                 android:text="仔大仔世界"
-                android:textColor="#f7030303" />
+                android:textColor="#f7030303"
+                android:layout_below="@id/tv_chat_bubble_received_author"/>
         </LinearLayout>
-
-        <ImageView
-            android:id="@+id/tv_chat_bubble_received_life1"
-            android:layout_height="wrap_content"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:paddingTop="5dp"
-            android:src="@drawable/ic_favorite_black_18dp"
-            android:layout_toRightOf="@+id/linear_layout_chat_bubble"
-            android:layout_alignParentTop="false"
-            android:layout_alignParentLeft="false"
-            android:layout_alignTop="@+id/linear_layout_chat_bubble" />
-        <ImageView
-            android:id="@+id/tv_chat_bubble_received_life2"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:paddingTop="5dp"
-            android:src="@drawable/ic_favorite_black_18dp"
-            android:layout_toRightOf="@+id/tv_chat_bubble_received_life1" />
-        <ImageView
-            android:id="@+id/tv_chat_bubble_received_life3"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
+            android:paddingLeft="10dp"
+            android:paddingTop="8dp"
             android:paddingRight="10dp"
-            android:paddingTop="5dp"
-            android:src="@drawable/ic_favorite_black_18dp"
-            android:layout_toRightOf="@+id/tv_chat_bubble_received_life2" />
-
+            android:layout_toRightOf="@id/linearLayout"
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/tv_chat_bubble_received_life1"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:src="@drawable/ic_favorite_black_18dp"
+                />
+            <ImageView
+                android:id="@+id/tv_chat_bubble_received_life2"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:src="@drawable/ic_favorite_black_18dp"
+                />
+            <ImageView
+                android:id="@+id/tv_chat_bubble_received_life3"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:src="@drawable/ic_favorite_black_18dp"
+                 />
+        </LinearLayout>
     </RelativeLayout>
-
+    <RelativeLayout
+        android:id="@+id/relative_layout_chat_bubble_hidden_player_status"
+        android:layout_width="wrap_content"
+        android:background="@drawable/balloon_incoming_normal"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/image_profile_icon"
+        android:visibility="gone"
+        android:layout_centerVertical="true"
+        android:gravity="center_vertical"
+        android:paddingLeft="15dp"
+        android:paddingRight="5dp">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/score" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="：" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:id="@+id/tv_hidden_player_status_score" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" || " />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/life" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="：" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3"
+                    android:id="@+id/tv_hidden_player_status_life" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" || " />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/round" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="：" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:id="@+id/tv_hidden_player_status_round" />
+            </LinearLayout>
+    </RelativeLayout>
 </RelativeLayout>

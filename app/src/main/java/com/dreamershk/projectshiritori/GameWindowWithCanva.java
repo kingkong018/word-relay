@@ -2,20 +2,19 @@ package com.dreamershk.projectshiritori;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
+import android.media.MediaPlayer;
 import android.os.CountDownTimer;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -23,7 +22,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -32,6 +30,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,14 +40,12 @@ import com.dreamershk.projectshiritori.model.Player;
 import com.dreamershk.projectshiritori.model.SystemMessage;
 import com.dreamershk.projectshiritori.model.UserType;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameWindow extends AppCompatActivity implements GameView{
-    protected String log_name= "GAMEWINDOW";
+public class GameWindowWithCanva extends AppCompatActivity implements GameView {
+
+    protected String log_name= "GAMEWINDOWWITHCANVA";
     //UI elements
     ProgressDialog loadingDialog;
     boolean isLoadingDialogClosed, isPlayerQueueBarInitialized, isButtonSendChanged2Abstain;
@@ -56,44 +53,64 @@ public class GameWindow extends AppCompatActivity implements GameView{
     ProgressBar pb;
     EditText et_input, et_lastChar;
     ImageButton buttonSend, buttonAction, buttonAbstain, buttonSkip, buttonReverse, buttonHelp, buttonAssign;
-    TextView tv_score, tv_round, tv_abstain_button, tv_help_button, tv_assign_button, tv_reverse_button, tv_skip_button;
+    TextView tv_score, tv_round, tv_abstain_button, tv_help_button, tv_assign_button, tv_reverse_button, tv_skip_button, system_message;
     ImageView image_life1, image_life2, image_life3;
-    ListView bubbleList;
-    GameBubblesAdapter adapter;
+
     PopupWindow popupWindow4Action;
     View popupWindowView;
     View.OnClickListener onClickListener4SendButton, onClickListener4AbstainButton;
     LinearLayout linear_layout_bottom_pop_up_window, linear_layout_4_button_skip, linear_layout_4_button_abstain,
             linear_layout_4_button_reverse, linear_layout_4_button_assign,linear_layout_4_button_help, linear_layout_queue_bar,
-            linear_layout_bottom_bar;
+            linear_layout_bottom_bar, linear_layout_system_message_box;
+    RelativeLayout canva;
+    FloatingActionButton floatingActionButtonSystemMessage;
     boolean isPopupWindowClicked = false;
     List<ImageView> imageArrowList;
     List<ImageView> imageIconList;
     int chance;
     //Game playUtility
     int maxTime = 30;
+    int numberOfWordInCanva = 0;
     CountDownTimer countDownTimer;
     boolean isActive, isOver, isQueueBarFinishedUpdate;
 
+    MediaPlayer mediaPlayer;
+
     protected GameActionListener gameActionListener;
+
+
 
     @Override
     protected void onResume() {
         super.onResume();
         View decorView = getWindow().getDecorView();
         // Hide the status bar.
-         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-         decorView.setSystemUiVisibility(uiOptions);
+        //        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
+        //        decorView.setSystemUiVisibility(uiOptions);
         // Remember that you should never show the action bar if the
         // status bar is hidden, so hide that too if necessary.
         android.support.v7.app.ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
+        mediaPlayer.start();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mediaPlayer.pause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        gameActionListener.windowClosed();
+        mediaPlayer.release();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game_window);
+        setContentView(R.layout.activity_game_window_with_canva);
 
         //Set up UI
         //Remaining time progress bar
@@ -121,7 +138,7 @@ public class GameWindow extends AppCompatActivity implements GameView{
                 et_input.setText("");
                 //TODO: hide the keyboard
                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-                inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                inputMethodManager.hideSoftInputFromWindow(canva.getWindowToken(), 0);
             }
         };
         buttonSend.setOnClickListener(onClickListener4SendButton);
@@ -132,41 +149,29 @@ public class GameWindow extends AppCompatActivity implements GameView{
         image_life1 = (ImageView)findViewById(R.id.image_life1);
         image_life2 = (ImageView)findViewById(R.id.image_life2);
         image_life3 = (ImageView)findViewById(R.id.image_life3);
-        //Set up listview
-        bubbleList = (ListView)findViewById(R.id.listview_multiplayer_bubbles);
-        bubbleList.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
-        adapter = new GameBubblesAdapter(new ArrayList<BubbleDetail>(), this);
-        bubbleList.setAdapter(adapter);
-        bubbleList.setEmptyView(findViewById(R.id.emptyview_listview_multiplayer_bubbles));
         //
-        linear_layout_bottom_pop_up_window = (LinearLayout)findViewById(R.id.pop_up_window);
-        linear_layout_bottom_pop_up_window.setVisibility(View.GONE);
-        //Set up pop up action window
-        popupWindowView = LayoutInflater.from(this).inflate(R.layout.popup_window_for_game_action, null, false);
-        popupWindow4Action = new PopupWindow(popupWindowView, ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-        //to dismiss the window when touch outside
-        popupWindow4Action.setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
-        popupWindow4Action.setOutsideTouchable(true);
-        popupWindow4Action.setOnDismissListener(new PopupWindow.OnDismissListener() {
+        canva = (RelativeLayout)findViewById(R.id.relative_layout_canva);
+        //
+        linear_layout_system_message_box = (LinearLayout)LayoutInflater.from(GameWindowWithCanva.this).inflate(R.layout.system_message_window, null, false);
+        floatingActionButtonSystemMessage = (FloatingActionButton)findViewById(R.id.floating_button_system_message);
+        floatingActionButtonSystemMessage.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onDismiss() {
-                isPopupWindowClicked = false;
-                buttonAction.setImageResource(R.drawable.ic_open_in_browser_black_36dp);
-                buttonAction.setBackgroundColor(Color.parseColor("#FFFFFF"));
+            public void onClick(View v) {
+                PopupWindow popupWindow = new PopupWindow(linear_layout_system_message_box, ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                popupWindow.setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
+                popupWindow.setOutsideTouchable(true);
+                popupWindow.showAtLocation(findViewById(android.R.id.content), Gravity.CENTER, 0 , 0);
             }
         });
-        //Set action button for pop up action windwo
+        system_message = (TextView)findViewById(R.id.txt_system_message);
+        //set up skill bar
+        linear_layout_bottom_pop_up_window = (LinearLayout)findViewById(R.id.pop_up_window);
+        linear_layout_bottom_pop_up_window.setVisibility(View.GONE);
+        //Set action button for pop up action window
         buttonAction = (ImageButton)findViewById(R.id.ib_action);
         buttonAction.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (!isPopupWindowClicked) {
-                    /*Display display = getWindowManager().getDefaultDisplay();
-                    Point size = new Point();
-                    display.getSize(size);
-                    int[] location = new int[2];
-                    findViewById(R.id.relative_layout_bottom_bar).getLocationOnScreen(location);
-                    int y = location[1];
-                    popupWindow4Action.showAtLocation(findViewById(android.R.id.content), Gravity.BOTTOM, 0, size.y-y);*/
                     isPopupWindowClicked = true;
                     buttonAction.setImageResource(R.drawable.ic_open_in_browser_white_36dp);
                     buttonAction.setBackgroundColor(Color.parseColor("#80cbc4"));
@@ -233,13 +238,18 @@ public class GameWindow extends AppCompatActivity implements GameView{
         chance = 3;
         imageArrowList = new ArrayList<ImageView>();
         imageIconList = new ArrayList<ImageView>();
+
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.bg);
+        mediaPlayer.setLooping(true);
+        mediaPlayer.setVolume(0.8f,0.8f);
     }
 
     public void setStartGame(){
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                AlertDialog.Builder dialog = new AlertDialog.Builder(GameWindow.this);
+                AlertDialog.Builder dialog = new AlertDialog.Builder(GameWindowWithCanva.this);
                 dialog.setTitle("開始遊戲");
                 //startGameAlertDialog.setMessage("需等待最少一名玩家才可開始遊戲。");
                 dialog.setCancelable(false);
@@ -259,7 +269,7 @@ public class GameWindow extends AppCompatActivity implements GameView{
                             @Override
                             public void onClick(View v) {
                                 if (gameActionListener.getNumberOfPlayers() < 2){
-                                    Toast.makeText(GameWindow.this, "需等待最少一名玩家才可開始遊戲。", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(GameWindowWithCanva.this, "需等待最少一名玩家才可開始遊戲。", Toast.LENGTH_SHORT).show();
                                 }else{
                                     alertDialog.dismiss();
                                     gameActionListener.startGame();
@@ -283,62 +293,99 @@ public class GameWindow extends AppCompatActivity implements GameView{
     public void addMessage(CirculateMessage message) {
         final CirculateMessage circulateMessage = message;
         final String m = circulateMessage.getMessage();
+        String output = "";
         if (m.equals(SystemMessage.DATABASE_LOADING_ERROR)){
             Toast.makeText(getBaseContext(), m, Toast.LENGTH_SHORT).show();
             finish();
         }
         if (m.equals(SystemMessage.WORD_DOES_NOT_EXIST) || m.equals(SystemMessage.WORD_IS_INVALID) || m.equals(SystemMessage.WORD_REPEATED) ||
                 m.equals(SystemMessage.ACTION_ABSTAIN) || m.equals(SystemMessage.ACTION_SKIP) || m.equals(SystemMessage.ACTION_REVERSE)) {
-            addChatBubble(UserType.SYSTEM, circulateMessage.getAuthor() + " " + m + "請繼續回答：\n" + circulateMessage.getWord());
+            output = circulateMessage.getAuthor() + " " + m + "請繼續回答：" + circulateMessage.getWord();
         }else if(m.equals(SystemMessage.ACTION_ASSIGN)){
-            addChatBubble(UserType.SYSTEM, circulateMessage.getAuthor() + " 點名要求 " + circulateMessage.getExtra() + "幫助。請繼續回答：\n" + circulateMessage.getWord());
+            output = circulateMessage.getAuthor() + " 點名要求 " + circulateMessage.getExtra() + "幫助。請繼續回答：" + circulateMessage.getWord();
         } else if (m.equals(SystemMessage.ACTION_HELP)){
-            addChatBubble(UserType.SYSTEM, circulateMessage.getAuthor() + " " + m);
+            output = circulateMessage.getAuthor() + " " + m;
         }else if (m.equals(SystemMessage.NOT_POSSIBLE_TO_ANSWER)){
-            addChatBubble(UserType.SYSTEM, "由於詞庫沒有合適的答案，請回答新詞語：\n"+circulateMessage.getWord());
-        }else if (m.equals(SystemMessage.LAST_WON_PLAYER_CANNOT_ANSWER_HER_WORD) || m.equals(SystemMessage.LAST_WON_PLAYER_CAN_GIVE_ANY_ANSWER)){
-            runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        et_lastChar.setText("　");
-                    }
-                });
-        }else if (m.equals(SystemMessage.EXTRA_CHANCE) || m.equals(SystemMessage.EXTRA_SKILL)){
-            if (circulateMessage.getExtra().equals(SystemMessage.SCORE_ACHIEVED)){
-                addChatBubble(UserType.SYSTEM, circulateMessage.getAuthor() + " 達到等級 " + circulateMessage.getPlayer().getLevel() + " ，" + m);
-            }else if (circulateMessage.getExtra().equals(SystemMessage.ROUND_ACHIEVED)){
-                addChatBubble(UserType.SYSTEM, circulateMessage.getAuthor() + " 目前進行了 " + circulateMessage.getPlayer().getScore() + " 回合，" + m);
-            }
+            output = "由於詞庫沒有合適的答案，請回答新詞語："+circulateMessage.getWord();
         }else{
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                //appendTextAndScroll(txt_message, m);
-                addChatBubble(UserType.SYSTEM, m);
-                //Toast.makeText(getBaseContext(), m, Toast.LENGTH_SHORT).show();
-                }
-            });
+            output = m;
         }
+        final String s = output;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                system_message.setText(s); //disappear after 3s..
+                system_message.setVisibility(View.VISIBLE);
+                new CountDownTimer(3000, 1500) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+
+                    }
+                    @Override
+                    public void onFinish() {
+                        system_message.setVisibility(View.GONE);
+                    }
+                }.start();
+                TextView all_messages = (TextView)linear_layout_system_message_box.findViewById(R.id.txt_all_system_messages);
+                all_messages.setText(s + "\n" + all_messages.getText().toString());
+            }
+        });
+
     }
     public void addChatBubble(UserType userType, String message) {
         addChatBubble(userType, "", message, -1, -1, -1, -1);
     }
     @Override
-    public void addChatBubble(UserType userType, String author, String message, int score, int life, int round, int iconResId) {
-        BubbleDetail b = new BubbleDetail(userType, author, message, score, life, round);
-        if (iconResId != -1) b.setIconResId(iconResId);
-        adapter.addBubble(b);
-        /*runOnUiThread(new Runnable() {
+    public synchronized void addChatBubble(UserType userType, String author, final String message, int score, int life, int round, int iconResId) {
+        //add word to canva
+        //text size, rotation, color, position
+        int canvaHeight = canva.getHeight();
+        int canvaWidth = canva.getWidth();
+        final int size = (int)(Math.random() * (canvaHeight / 20)) + 25;
+        final int rotation = (int)(Math.random() * 60) - 60;
+        int a,r,g,b;
+            a = (int)(Math.random() * 115) + 140;
+            r = (int)(Math.random() * 256);
+            g = (int)(Math.random() * 180);
+            b = (int)(Math.random() * 180);
+        final RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        int isAlignTop = (int)(Math.random() * 2);
+        int isAlignLeft = (int)(Math.random() * 2);
+        int marginTop = 0, marginLeft = 0, marginRight = 0, marginBottom = 0;
+        if (isAlignTop == 0){
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            marginTop = (int)(Math.random() * (canvaHeight/2));
+        }else{
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            marginBottom = (int)(Math.random() * (canvaHeight/2));
+        }
+        if (isAlignLeft == 0){
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            marginLeft = (int)(Math.random() * (canvaWidth/2));
+        }else{
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            marginRight = (int)(Math.random() * (canvaWidth/2));
+        }
+        layoutParams.setMargins(marginLeft, marginTop, marginRight, marginBottom);
+        final int color = Color.argb(255, r, g, b);
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
-
-            }
-        });*/
-        bubbleList.post(new Runnable() {
-            @Override
-            public void run() {
-                adapter.notifyDataSetChanged();
-                bubbleList.setSelection(adapter.getCount() - 1);
+                View v = canva.getChildAt(canva.getChildCount()-1); //Get the system message and button.
+                canva.removeViewAt(canva.getChildCount()-1); //remove it first and add back afterwards.
+                TextView textView = new TextView(GameWindowWithCanva.this);
+                textView.setText(message);
+                textView.setTextSize(size);
+                textView.setRotation(rotation);
+                textView.setTextColor(color);
+                textView.setLayoutParams(layoutParams);
+                canva.addView(textView);
+                canva.addView(v); //add back the message and button so that they are on the top.
+                numberOfWordInCanva++;
+                if (numberOfWordInCanva > 10) {
+                    canva.removeViewAt(0);
+                    numberOfWordInCanva--;
+                }
             }
         });
     }
@@ -353,6 +400,7 @@ public class GameWindow extends AppCompatActivity implements GameView{
                 linear_layout_queue_bar.setVisibility(View.GONE);
                 linear_layout_bottom_bar.setVisibility(View.VISIBLE);
                 //enable buttons
+                floatingActionButtonSystemMessage.setVisibility(View.VISIBLE);
                 et_input.setEnabled(true);
                 et_input.setInputType(EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS | EditorInfo.TYPE_TEXT_FLAG_AUTO_COMPLETE);
                 buttonSend.setEnabled(true);
@@ -364,9 +412,12 @@ public class GameWindow extends AppCompatActivity implements GameView{
                         long currentTime = maxTime - millisUntilFinished/1000;
                         int progress = (int)(currentTime*100/maxTime);
                         pb.setProgress(progress);
+                        if (millisUntilFinished <= 4500 && millisUntilFinished >=3000){
+                            gameActionListener.timeAlmostUp();
+                        }
                     }
                     public void onFinish() {
-                        gameActionListener.abstain();
+                        gameActionListener.timeUp();
                     }
                 };
                 countDownTimer.start();
@@ -384,6 +435,7 @@ public class GameWindow extends AppCompatActivity implements GameView{
                 linear_layout_bottom_bar.setVisibility(View.GONE);
                 linear_layout_queue_bar.setVisibility(View.VISIBLE);
                 //
+                floatingActionButtonSystemMessage.setVisibility(View.GONE);
                 et_input.setEnabled(false);
                 buttonSend.setEnabled(false);
                 buttonAbstain.setEnabled(false);
@@ -469,14 +521,13 @@ public class GameWindow extends AppCompatActivity implements GameView{
                     int i = 0;
                     linear_layout_queue_bar.removeAllViews();
                     for (Player p : list){
-                        LinearLayout queue_bar_item = (LinearLayout)LayoutInflater.from(GameWindow.this).inflate(R.layout.queue_bar_item, null);
+                        LinearLayout queue_bar_item = (LinearLayout)LayoutInflater.from(GameWindowWithCanva.this).inflate(R.layout.queue_bar_item, null);
                         TextView name = (TextView)queue_bar_item.findViewById(R.id.txt_queue_player_name);
                         name.setText(p.getName());
                         //the icon...
                         ImageView imageView = (ImageView)queue_bar_item.findViewById(R.id.image_queue_player_icon);
                         imageView.setImageResource(p.getIconResId());
-
-                        ImageView arrow = new ImageView(GameWindow.this);
+                        ImageView arrow = new ImageView(GameWindowWithCanva.this);
                         if (i==0){
                             arrow.setImageResource(R.drawable.ic_keyboard_arrow_right_white_18dp);
                             i++;
@@ -572,8 +623,8 @@ public class GameWindow extends AppCompatActivity implements GameView{
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GameWindow.this);
-                    LinearLayout assign_window = (LinearLayout)LayoutInflater.from(GameWindow.this).inflate(R.layout.assign_player_window, null);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GameWindowWithCanva.this);
+                    LinearLayout assign_window = (LinearLayout)LayoutInflater.from(GameWindowWithCanva.this).inflate(R.layout.assign_player_window, null);
                     builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -603,7 +654,6 @@ public class GameWindow extends AppCompatActivity implements GameView{
                     for (int i=0; i <list.size(); i++){
                         final int index = i;
                         linearLayouts[i].setVisibility(View.VISIBLE);
-                        imageButton[i].setImageResource(list.get(i).getIconResId());
                         imageButton[i].setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -627,7 +677,7 @@ public class GameWindow extends AppCompatActivity implements GameView{
                 public void run() {
                     cleanUp();
                     //
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(GameWindow.this);
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(GameWindowWithCanva.this);
                     builder.setCancelable(false);
                     builder.setNegativeButton("結束", new DialogInterface.OnClickListener() {
                         @Override
@@ -635,10 +685,10 @@ public class GameWindow extends AppCompatActivity implements GameView{
                             finish();
                         }
                     });
-                    LinearLayout linearLayout = (LinearLayout)LayoutInflater.from(GameWindow.this).inflate(R.layout.ranking, null);
+                    LinearLayout linearLayout = (LinearLayout)LayoutInflater.from(GameWindowWithCanva.this).inflate(R.layout.ranking, null);
                     for (int i = 0; i < sortedPlayerList.size(); i++){
                         Player p = sortedPlayerList.get(i);
-                        LinearLayout layout = (LinearLayout)LayoutInflater.from(GameWindow.this).inflate(R.layout.rank_item, null);
+                        LinearLayout layout = (LinearLayout)LayoutInflater.from(GameWindowWithCanva.this).inflate(R.layout.rank_item, null);
                         TextView order = (TextView)layout.findViewById(R.id.txt_ranking_order);
                         order.setText((i+1) + "");
                         ImageView icon = (ImageView)layout.findViewById(R.id.iv_ranking_icon);

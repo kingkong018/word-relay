@@ -1,130 +1,106 @@
 package com.dreamershk.projectshiritori;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.os.CountDownTimer;
+import android.speech.RecognizerIntent;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
-import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.BaseAdapter;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.dreamershk.projectshiritori.model.BubbleDetail;
 import com.dreamershk.projectshiritori.model.CirculateMessage;
 import com.dreamershk.projectshiritori.model.Player;
 import com.dreamershk.projectshiritori.model.SystemMessage;
 import com.dreamershk.projectshiritori.model.UserType;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-public class GameWindow extends AppCompatActivity implements GameView{
-    protected String log_name= "GAMEWINDOW";
+public class GameWindowWithAudio extends AppCompatActivity implements GameView {
+    protected String log_name= "GAMEWINDOWWITHAUDIO";
     //UI elements
     ProgressDialog loadingDialog;
     boolean isLoadingDialogClosed, isPlayerQueueBarInitialized, isButtonSendChanged2Abstain;
     AlertDialog startGameAlertDialog, assignWindowAlertDialog;
     ProgressBar pb;
-    EditText et_input, et_lastChar;
-    ImageButton buttonSend, buttonAction, buttonAbstain, buttonSkip, buttonReverse, buttonHelp, buttonAssign;
-    TextView tv_score, tv_round, tv_abstain_button, tv_help_button, tv_assign_button, tv_reverse_button, tv_skip_button;
+    ImageView buttonShowActionWindow, buttonShowVoiceBar;
+    ImageButton buttonAction, buttonAbstain, buttonSkip, buttonReverse, buttonHelp, buttonAssign, buttonVoiceInput;
+    TextView tv_score, tv_round, tv_abstain_button, tv_help_button, tv_assign_button, tv_reverse_button, tv_skip_button, system_message;
     ImageView image_life1, image_life2, image_life3;
-    ListView bubbleList;
-    GameBubblesAdapter adapter;
+
     PopupWindow popupWindow4Action;
     View popupWindowView;
     View.OnClickListener onClickListener4SendButton, onClickListener4AbstainButton;
-    LinearLayout linear_layout_bottom_pop_up_window, linear_layout_4_button_skip, linear_layout_4_button_abstain,
+    LinearLayout linear_layout_action_buttons_window, linear_layout_4_button_skip, linear_layout_4_button_abstain,
             linear_layout_4_button_reverse, linear_layout_4_button_assign,linear_layout_4_button_help, linear_layout_queue_bar,
-            linear_layout_bottom_bar;
+            linear_layout_system_message_box;
+    RelativeLayout canva, relative_layout_bottom_bar;
+    FloatingActionButton floatingActionButtonSystemMessage;
     boolean isPopupWindowClicked = false;
     List<ImageView> imageArrowList;
     List<ImageView> imageIconList;
     int chance;
     //Game playUtility
     int maxTime = 30;
+    int numberOfWordInCanva = 0;
     CountDownTimer countDownTimer;
     boolean isActive, isOver, isQueueBarFinishedUpdate;
 
     protected GameActionListener gameActionListener;
-
     @Override
     protected void onResume() {
         super.onResume();
         View decorView = getWindow().getDecorView();
         // Hide the status bar.
-         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-         decorView.setSystemUiVisibility(uiOptions);
+        //        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
+        //        decorView.setSystemUiVisibility(uiOptions);
         // Remember that you should never show the action bar if the
         // status bar is hidden, so hide that too if necessary.
         android.support.v7.app.ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game_window);
+        setContentView(R.layout.activity_game_window_with_audio);
 
         //Set up UI
         //Remaining time progress bar
         pb = (ProgressBar)findViewById(R.id.pb_remaining_time);
         //Edit Text field for et_input and lastCharacter
-        et_input = (EditText)findViewById(R.id.et_input);
-        et_input.setOnClickListener(new View.OnClickListener() {
+        buttonVoiceInput = (ImageButton) findViewById(R.id.ib_voice_input);
+        buttonVoiceInput.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Hide the action window.
-                isPopupWindowClicked = false;
-                buttonAction.setImageResource(R.drawable.ic_open_in_browser_black_36dp);
-                buttonAction.setBackgroundColor(Color.parseColor("#FFFFFF"));
-                linear_layout_bottom_pop_up_window.setVisibility(View.GONE);
+                //do the recognizion.
+                promptSpeechInput();
             }
         });
-        et_input.addTextChangedListener(new GameTextWatcher());
-        et_lastChar = (EditText)findViewById(R.id.et_lastChar);
-        //Sent button
-        buttonSend = (ImageButton)findViewById(R.id.ib_send);
-        onClickListener4SendButton = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                gameActionListener.wordSubmitted(et_lastChar.getText().toString()+et_input.getText().toString());
-                et_input.setText("");
-                //TODO: hide the keyboard
-                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-                inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-            }
-        };
-        buttonSend.setOnClickListener(onClickListener4SendButton);
+
         //Set up textfields: tv_score, tv_round
         tv_score = (TextView)findViewById(R.id.tv_score);
         tv_round = (TextView)findViewById(R.id.tv_round);
@@ -132,99 +108,89 @@ public class GameWindow extends AppCompatActivity implements GameView{
         image_life1 = (ImageView)findViewById(R.id.image_life1);
         image_life2 = (ImageView)findViewById(R.id.image_life2);
         image_life3 = (ImageView)findViewById(R.id.image_life3);
-        //Set up listview
-        bubbleList = (ListView)findViewById(R.id.listview_multiplayer_bubbles);
-        bubbleList.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
-        adapter = new GameBubblesAdapter(new ArrayList<BubbleDetail>(), this);
-        bubbleList.setAdapter(adapter);
-        bubbleList.setEmptyView(findViewById(R.id.emptyview_listview_multiplayer_bubbles));
         //
-        linear_layout_bottom_pop_up_window = (LinearLayout)findViewById(R.id.pop_up_window);
-        linear_layout_bottom_pop_up_window.setVisibility(View.GONE);
-        //Set up pop up action window
-        popupWindowView = LayoutInflater.from(this).inflate(R.layout.popup_window_for_game_action, null, false);
-        popupWindow4Action = new PopupWindow(popupWindowView, ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-        //to dismiss the window when touch outside
-        popupWindow4Action.setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
-        popupWindow4Action.setOutsideTouchable(true);
-        popupWindow4Action.setOnDismissListener(new PopupWindow.OnDismissListener() {
+        canva = (RelativeLayout)findViewById(R.id.relative_layout_canva);
+        //
+        linear_layout_system_message_box = (LinearLayout)LayoutInflater.from(GameWindowWithAudio.this).inflate(R.layout.system_message_window, null, false);
+        floatingActionButtonSystemMessage = (FloatingActionButton)findViewById(R.id.floating_button_system_message);
+        floatingActionButtonSystemMessage.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onDismiss() {
-                isPopupWindowClicked = false;
-                buttonAction.setImageResource(R.drawable.ic_open_in_browser_black_36dp);
-                buttonAction.setBackgroundColor(Color.parseColor("#FFFFFF"));
+            public void onClick(View v) {
+                PopupWindow popupWindow = new PopupWindow(linear_layout_system_message_box, ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                popupWindow.setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
+                popupWindow.setOutsideTouchable(true);
+                popupWindow.showAtLocation(findViewById(android.R.id.content), Gravity.CENTER, 0 , 0);
             }
         });
-        //Set action button for pop up action windwo
-        buttonAction = (ImageButton)findViewById(R.id.ib_action);
-        buttonAction.setOnClickListener(new View.OnClickListener() {
+        system_message = (TextView)findViewById(R.id.txt_system_message);
+        //set up skill bar
+        linear_layout_action_buttons_window = (LinearLayout)findViewById(R.id.pop_up_window);
+        linear_layout_action_buttons_window.setVisibility(View.GONE);
+        //Set action button for pop up action window
+        buttonShowActionWindow = (ImageView) findViewById(R.id.iv_show_voice_bar);
+        buttonShowActionWindow.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (!isPopupWindowClicked) {
-                    /*Display display = getWindowManager().getDefaultDisplay();
-                    Point size = new Point();
-                    display.getSize(size);
-                    int[] location = new int[2];
-                    findViewById(R.id.relative_layout_bottom_bar).getLocationOnScreen(location);
-                    int y = location[1];
-                    popupWindow4Action.showAtLocation(findViewById(android.R.id.content), Gravity.BOTTOM, 0, size.y-y);*/
                     isPopupWindowClicked = true;
-                    buttonAction.setImageResource(R.drawable.ic_open_in_browser_white_36dp);
-                    buttonAction.setBackgroundColor(Color.parseColor("#80cbc4"));
-                    linear_layout_bottom_pop_up_window.setVisibility(View.VISIBLE);
-                } else {
-                    //popupWindow4Action.dismiss();
-                    isPopupWindowClicked = false;
-                    buttonAction.setImageResource(R.drawable.ic_open_in_browser_black_36dp);
-                    buttonAction.setBackgroundColor(Color.parseColor("#FFFFFF"));
-                    linear_layout_bottom_pop_up_window.setVisibility(View.GONE);
+                    linear_layout_action_buttons_window.setVisibility(View.VISIBLE);
+                    relative_layout_bottom_bar.setVisibility(View.GONE);
                 }
             }
         });
+        buttonShowVoiceBar = (ImageView) linear_layout_action_buttons_window.findViewById(R.id.iv_return);
+        buttonShowVoiceBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isPopupWindowClicked = false;
+                relative_layout_bottom_bar.setVisibility(View.VISIBLE);
+                linear_layout_action_buttons_window.setVisibility(View.GONE);
+            }
+        });
         //Set the five buttons in the pop up window.
-        buttonAbstain = (ImageButton) linear_layout_bottom_pop_up_window.findViewById(R.id.button_abstain);
+        buttonAbstain = (ImageButton) linear_layout_action_buttons_window.findViewById(R.id.button_abstain);
         onClickListener4AbstainButton = new View.OnClickListener(){
             public void onClick(View v){
                 gameActionListener.abstain();
             }
         };
         buttonAbstain.setOnClickListener(onClickListener4AbstainButton);
-        buttonAssign = (ImageButton) linear_layout_bottom_pop_up_window.findViewById(R.id.button_assign);
+        buttonAssign = (ImageButton) linear_layout_action_buttons_window.findViewById(R.id.button_assign);
         buttonAssign.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 if (assignWindowAlertDialog != null) assignWindowAlertDialog.show();
             }
         });
-        buttonSkip = (ImageButton) linear_layout_bottom_pop_up_window.findViewById(R.id.button_skip);
+        buttonSkip = (ImageButton) linear_layout_action_buttons_window.findViewById(R.id.button_skip);
         buttonSkip.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 gameActionListener.skip();
             }
         });
-        buttonReverse = (ImageButton) linear_layout_bottom_pop_up_window.findViewById(R.id.button_reverse);
+        buttonReverse = (ImageButton) linear_layout_action_buttons_window.findViewById(R.id.button_reverse);
         buttonReverse.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 gameActionListener.reverse();
             }
         });
-        buttonHelp = (ImageButton) linear_layout_bottom_pop_up_window.findViewById(R.id.button_help);
+        buttonHelp = (ImageButton) linear_layout_action_buttons_window.findViewById(R.id.button_help);
         buttonHelp.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 gameActionListener.help();
             }
         });
-        tv_abstain_button = (TextView) linear_layout_bottom_pop_up_window.findViewById(R.id.tv_abstain_button);
-        tv_help_button = (TextView) linear_layout_bottom_pop_up_window.findViewById(R.id.tv_help_button);
-        tv_assign_button = (TextView) linear_layout_bottom_pop_up_window.findViewById(R.id.tv_assign_button);
-        tv_reverse_button = (TextView) linear_layout_bottom_pop_up_window.findViewById(R.id.tv_reverse_button);
-        tv_skip_button = (TextView) linear_layout_bottom_pop_up_window.findViewById(R.id.tv_skip_button);
-        linear_layout_4_button_skip = (LinearLayout) linear_layout_bottom_pop_up_window.findViewById(R.id.linear_layout_4_button_skip);
-        linear_layout_4_button_abstain = (LinearLayout) linear_layout_bottom_pop_up_window.findViewById(R.id.linear_layout_4_button_abstain);
-        linear_layout_4_button_assign = (LinearLayout) linear_layout_bottom_pop_up_window.findViewById(R.id.linear_layout_4_button_assign);
-        linear_layout_4_button_help = (LinearLayout) linear_layout_bottom_pop_up_window.findViewById(R.id.linear_layout_4_button_help);
-        linear_layout_4_button_reverse = (LinearLayout) linear_layout_bottom_pop_up_window.findViewById(R.id.linear_layout_4_button_reverse);
+        tv_abstain_button = (TextView) linear_layout_action_buttons_window.findViewById(R.id.tv_abstain_button);
+        tv_help_button = (TextView) linear_layout_action_buttons_window.findViewById(R.id.tv_help_button);
+        tv_assign_button = (TextView) linear_layout_action_buttons_window.findViewById(R.id.tv_assign_button);
+        tv_reverse_button = (TextView) linear_layout_action_buttons_window.findViewById(R.id.tv_reverse_button);
+        tv_skip_button = (TextView) linear_layout_action_buttons_window.findViewById(R.id.tv_skip_button);
+        linear_layout_4_button_skip = (LinearLayout) linear_layout_action_buttons_window.findViewById(R.id.linear_layout_4_button_skip);
+        linear_layout_4_button_abstain = (LinearLayout) linear_layout_action_buttons_window.findViewById(R.id.linear_layout_4_button_abstain);
+        linear_layout_4_button_assign = (LinearLayout) linear_layout_action_buttons_window.findViewById(R.id.linear_layout_4_button_assign);
+        linear_layout_4_button_help = (LinearLayout) linear_layout_action_buttons_window.findViewById(R.id.linear_layout_4_button_help);
+        linear_layout_4_button_reverse = (LinearLayout) linear_layout_action_buttons_window.findViewById(R.id.linear_layout_4_button_reverse);
 
         linear_layout_queue_bar = (LinearLayout)findViewById(R.id.linear_layout_queue_bar);
-        linear_layout_bottom_bar = (LinearLayout)findViewById(R.id.linear_layout_bottom_bar);
+        relative_layout_bottom_bar = (RelativeLayout)findViewById(R.id.relative_layout_bottom_bar);
 
         isLoadingDialogClosed = false;
         isPlayerQueueBarInitialized = false;
@@ -234,12 +200,11 @@ public class GameWindow extends AppCompatActivity implements GameView{
         imageArrowList = new ArrayList<ImageView>();
         imageIconList = new ArrayList<ImageView>();
     }
-
     public void setStartGame(){
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                AlertDialog.Builder dialog = new AlertDialog.Builder(GameWindow.this);
+                AlertDialog.Builder dialog = new AlertDialog.Builder(GameWindowWithAudio.this);
                 dialog.setTitle("開始遊戲");
                 //startGameAlertDialog.setMessage("需等待最少一名玩家才可開始遊戲。");
                 dialog.setCancelable(false);
@@ -259,7 +224,7 @@ public class GameWindow extends AppCompatActivity implements GameView{
                             @Override
                             public void onClick(View v) {
                                 if (gameActionListener.getNumberOfPlayers() < 2){
-                                    Toast.makeText(GameWindow.this, "需等待最少一名玩家才可開始遊戲。", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(GameWindowWithAudio.this, "需等待最少一名玩家才可開始遊戲。", Toast.LENGTH_SHORT).show();
                                 }else{
                                     alertDialog.dismiss();
                                     gameActionListener.startGame();
@@ -283,62 +248,103 @@ public class GameWindow extends AppCompatActivity implements GameView{
     public void addMessage(CirculateMessage message) {
         final CirculateMessage circulateMessage = message;
         final String m = circulateMessage.getMessage();
+        String output = "";
         if (m.equals(SystemMessage.DATABASE_LOADING_ERROR)){
             Toast.makeText(getBaseContext(), m, Toast.LENGTH_SHORT).show();
             finish();
         }
         if (m.equals(SystemMessage.WORD_DOES_NOT_EXIST) || m.equals(SystemMessage.WORD_IS_INVALID) || m.equals(SystemMessage.WORD_REPEATED) ||
                 m.equals(SystemMessage.ACTION_ABSTAIN) || m.equals(SystemMessage.ACTION_SKIP) || m.equals(SystemMessage.ACTION_REVERSE)) {
-            addChatBubble(UserType.SYSTEM, circulateMessage.getAuthor() + " " + m + "請繼續回答：\n" + circulateMessage.getWord());
+            output = circulateMessage.getAuthor() + " " + m + "請繼續回答：" + circulateMessage.getWord();
         }else if(m.equals(SystemMessage.ACTION_ASSIGN)){
-            addChatBubble(UserType.SYSTEM, circulateMessage.getAuthor() + " 點名要求 " + circulateMessage.getExtra() + "幫助。請繼續回答：\n" + circulateMessage.getWord());
+            output = circulateMessage.getAuthor() + " 點名要求 " + circulateMessage.getExtra() + "幫助。請繼續回答：" + circulateMessage.getWord();
         } else if (m.equals(SystemMessage.ACTION_HELP)){
-            addChatBubble(UserType.SYSTEM, circulateMessage.getAuthor() + " " + m);
+            output = circulateMessage.getAuthor() + " " + m;
         }else if (m.equals(SystemMessage.NOT_POSSIBLE_TO_ANSWER)){
-            addChatBubble(UserType.SYSTEM, "由於詞庫沒有合適的答案，請回答新詞語：\n"+circulateMessage.getWord());
-        }else if (m.equals(SystemMessage.LAST_WON_PLAYER_CANNOT_ANSWER_HER_WORD) || m.equals(SystemMessage.LAST_WON_PLAYER_CAN_GIVE_ANY_ANSWER)){
-            runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        et_lastChar.setText("　");
-                    }
-                });
-        }else if (m.equals(SystemMessage.EXTRA_CHANCE) || m.equals(SystemMessage.EXTRA_SKILL)){
-            if (circulateMessage.getExtra().equals(SystemMessage.SCORE_ACHIEVED)){
-                addChatBubble(UserType.SYSTEM, circulateMessage.getAuthor() + " 達到等級 " + circulateMessage.getPlayer().getLevel() + " ，" + m);
-            }else if (circulateMessage.getExtra().equals(SystemMessage.ROUND_ACHIEVED)){
-                addChatBubble(UserType.SYSTEM, circulateMessage.getAuthor() + " 目前進行了 " + circulateMessage.getPlayer().getScore() + " 回合，" + m);
-            }
+            output = "由於詞庫沒有合適的答案，請回答新詞語："+circulateMessage.getWord();
         }else{
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                //appendTextAndScroll(txt_message, m);
-                addChatBubble(UserType.SYSTEM, m);
-                //Toast.makeText(getBaseContext(), m, Toast.LENGTH_SHORT).show();
-                }
-            });
+            output = m;
         }
+        final String s = output;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                system_message.setText(s); //disappear after 3s..
+                system_message.setVisibility(View.VISIBLE);
+                new CountDownTimer(3000, 1500) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+
+                    }
+                    @Override
+                    public void onFinish() {
+                        system_message.setVisibility(View.GONE);
+                    }
+                }.start();
+                TextView all_messages = (TextView)linear_layout_system_message_box.findViewById(R.id.txt_all_system_messages);
+                all_messages.setText(s + "\n" + all_messages.getText().toString());
+            }
+        });
+
     }
     public void addChatBubble(UserType userType, String message) {
         addChatBubble(userType, "", message, -1, -1, -1, -1);
     }
     @Override
-    public void addChatBubble(UserType userType, String author, String message, int score, int life, int round, int iconResId) {
-        BubbleDetail b = new BubbleDetail(userType, author, message, score, life, round);
-        if (iconResId != -1) b.setIconResId(iconResId);
-        adapter.addBubble(b);
-        /*runOnUiThread(new Runnable() {
+    public synchronized void addChatBubble(UserType userType, String author, final String message, int score, int life, int round, int iconResId) {
+        //add word to canva
+        //text size, rotation, color, position
+        int canvaHeight = canva.getHeight();
+        int canvaWidth = canva.getWidth();
+        final int size = (int)(Math.random() * (canvaHeight / 20)) + 25;
+        final int rotation = (int)(Math.random() * 60) - 60;
+        int a,r,g,b;
+        a = (int)(Math.random() * 115) + 140;
+        r = (int)(Math.random() * 256);
+        g = (int)(Math.random() * 180);
+        b = (int)(Math.random() * 180);
+        final RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        int isAlignTop = (int)(Math.random() * 2);
+        int isAlignLeft = (int)(Math.random() * 2);
+        int marginTop = 0, marginLeft = 0, marginRight = 0, marginBottom = 0;
+        if (isAlignTop == 0){
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            marginTop = (int)(Math.random() * (canvaHeight/2));
+        }else{
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            marginBottom = (int)(Math.random() * (canvaHeight/2));
+        }
+        if (isAlignLeft == 0){
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            marginLeft = (int)(Math.random() * (canvaWidth/2));
+        }else{
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            marginRight = (int)(Math.random() * (canvaWidth/2));
+        }
+        layoutParams.setMargins(marginLeft, marginTop, marginRight, marginBottom);
+        final int color = Color.argb(255, r, g, b);
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
-
-            }
-        });*/
-        bubbleList.post(new Runnable() {
-            @Override
-            public void run() {
-                adapter.notifyDataSetChanged();
-                bubbleList.setSelection(adapter.getCount() - 1);
+                View v = canva.getChildAt(canva.getChildCount()-1); //Get the system message and button.
+                canva.removeViewAt(canva.getChildCount()-1); //remove it first and add back afterwards.
+                TextView textView = new TextView(GameWindowWithAudio.this);
+                textView.setText(message);
+                textView.setTextSize(size);
+                textView.setRotation(rotation);
+                textView.setTextColor(color);
+                textView.setBackgroundColor(Color.parseColor("#8e2eb8ab"));
+                textView.setLayoutParams(layoutParams);
+                if (canva.getChildCount()>0){
+                    canva.getChildAt(canva.getChildCount()-1).setBackgroundColor(Color.TRANSPARENT);
+                }
+                canva.addView(textView);
+                canva.addView(v); //add back the message and button so that they are on the top.
+                numberOfWordInCanva++;
+                if (numberOfWordInCanva > 10) {
+                    canva.removeViewAt(0);
+                    numberOfWordInCanva--;
+                }
             }
         });
     }
@@ -351,12 +357,12 @@ public class GameWindow extends AppCompatActivity implements GameView{
             public void run() {
                 //Enable view
                 linear_layout_queue_bar.setVisibility(View.GONE);
-                linear_layout_bottom_bar.setVisibility(View.VISIBLE);
+                relative_layout_bottom_bar.setVisibility(View.VISIBLE);
+                buttonVoiceInput.setEnabled(true);
                 //enable buttons
-                et_input.setEnabled(true);
-                et_input.setInputType(EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS | EditorInfo.TYPE_TEXT_FLAG_AUTO_COMPLETE);
-                buttonSend.setEnabled(true);
-                buttonAction.setEnabled(true);
+                floatingActionButtonSystemMessage.setVisibility(View.VISIBLE);
+
+
                 setAssignPlayerWindow(gameActionListener.getPlayerQueue());
                 //start timer
                 countDownTimer = new CountDownTimer(maxTime*1000, 1000) {
@@ -381,23 +387,21 @@ public class GameWindow extends AppCompatActivity implements GameView{
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                linear_layout_bottom_bar.setVisibility(View.GONE);
+                relative_layout_bottom_bar.setVisibility(View.GONE);
                 linear_layout_queue_bar.setVisibility(View.VISIBLE);
                 //
-                et_input.setEnabled(false);
-                buttonSend.setEnabled(false);
+                floatingActionButtonSystemMessage.setVisibility(View.GONE);
+
                 buttonAbstain.setEnabled(false);
-                buttonAction.setEnabled(false);
-                et_input.setInputType(EditorInfo.TYPE_NULL);
+
+
                 //timer & progresas bar
                 if (countDownTimer != null) countDownTimer.cancel();
                 pb.setProgress(0);
                 //
                 if (isPopupWindowClicked){
                     isPopupWindowClicked = false;
-                    buttonAction.setImageResource(R.drawable.ic_open_in_browser_black_36dp);
-                    buttonAction.setBackgroundColor(Color.parseColor("#FFFFFF"));
-                    linear_layout_bottom_pop_up_window.setVisibility(View.GONE);
+                    linear_layout_action_buttons_window.setVisibility(View.GONE);
                 }
                 /*if (popupWindow4Action != null && isPopupWindowClicked){
                     isPopupWindowClicked = false;
@@ -448,13 +452,7 @@ public class GameWindow extends AppCompatActivity implements GameView{
 
     @Override
     public void setLastChar(String lastChar) {
-        final String s = lastChar;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                et_lastChar.setText(s);
-            }
-        });
+        //
     }
 
     @Override
@@ -469,14 +467,13 @@ public class GameWindow extends AppCompatActivity implements GameView{
                     int i = 0;
                     linear_layout_queue_bar.removeAllViews();
                     for (Player p : list){
-                        LinearLayout queue_bar_item = (LinearLayout)LayoutInflater.from(GameWindow.this).inflate(R.layout.queue_bar_item, null);
+                        LinearLayout queue_bar_item = (LinearLayout)LayoutInflater.from(GameWindowWithAudio.this).inflate(R.layout.queue_bar_item, null);
                         TextView name = (TextView)queue_bar_item.findViewById(R.id.txt_queue_player_name);
                         name.setText(p.getName());
                         //the icon...
                         ImageView imageView = (ImageView)queue_bar_item.findViewById(R.id.image_queue_player_icon);
                         imageView.setImageResource(p.getIconResId());
-
-                        ImageView arrow = new ImageView(GameWindow.this);
+                        ImageView arrow = new ImageView(GameWindowWithAudio.this);
                         if (i==0){
                             arrow.setImageResource(R.drawable.ic_keyboard_arrow_right_white_18dp);
                             i++;
@@ -572,8 +569,8 @@ public class GameWindow extends AppCompatActivity implements GameView{
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GameWindow.this);
-                    LinearLayout assign_window = (LinearLayout)LayoutInflater.from(GameWindow.this).inflate(R.layout.assign_player_window, null);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GameWindowWithAudio.this);
+                    LinearLayout assign_window = (LinearLayout)LayoutInflater.from(GameWindowWithAudio.this).inflate(R.layout.assign_player_window, null);
                     builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -603,7 +600,6 @@ public class GameWindow extends AppCompatActivity implements GameView{
                     for (int i=0; i <list.size(); i++){
                         final int index = i;
                         linearLayouts[i].setVisibility(View.VISIBLE);
-                        imageButton[i].setImageResource(list.get(i).getIconResId());
                         imageButton[i].setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -627,7 +623,7 @@ public class GameWindow extends AppCompatActivity implements GameView{
                 public void run() {
                     cleanUp();
                     //
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(GameWindow.this);
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(GameWindowWithAudio.this);
                     builder.setCancelable(false);
                     builder.setNegativeButton("結束", new DialogInterface.OnClickListener() {
                         @Override
@@ -635,10 +631,10 @@ public class GameWindow extends AppCompatActivity implements GameView{
                             finish();
                         }
                     });
-                    LinearLayout linearLayout = (LinearLayout)LayoutInflater.from(GameWindow.this).inflate(R.layout.ranking, null);
+                    LinearLayout linearLayout = (LinearLayout)LayoutInflater.from(GameWindowWithAudio.this).inflate(R.layout.ranking, null);
                     for (int i = 0; i < sortedPlayerList.size(); i++){
                         Player p = sortedPlayerList.get(i);
-                        LinearLayout layout = (LinearLayout)LayoutInflater.from(GameWindow.this).inflate(R.layout.rank_item, null);
+                        LinearLayout layout = (LinearLayout)LayoutInflater.from(GameWindowWithAudio.this).inflate(R.layout.rank_item, null);
                         TextView order = (TextView)layout.findViewById(R.id.txt_ranking_order);
                         order.setText((i+1) + "");
                         ImageView icon = (ImageView)layout.findViewById(R.id.iv_ranking_icon);
@@ -681,50 +677,70 @@ public class GameWindow extends AppCompatActivity implements GameView{
         startActivity(intent);
     }
 
-    private class GameTextWatcher implements TextWatcher {
-        String log_name = "GAMETEXTWATCHER";
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            try{
-                if(!s.toString().equals("")){
-                    //TODO: For 倉頡輸入法, enter ChangJie code will be regarded as text changed. Like "人" when input "他"
-                    String[] code4ChangJie = {"手","田","水","口","廿","卜","山","戈","人","心","日","尸","木","火","土","竹","十","大","中","金","女","月","弓","一"};
-                    boolean notCode4ChangJie = true;
-                    for (String x : code4ChangJie){
-                        if (s.toString().equals(x)) notCode4ChangJie = false;
-                    }
-                    //TODO: hide the soft keyboard the last input character is as same as the last character of the phrases, except for those ChangJie code.
-                    if(notCode4ChangJie && s.toString().equals(et_lastChar.getText().toString())){
-                        Log.d(log_name, "Hide soft keyboard successfully");
-                        InputMethodManager inputMethodManager = (InputMethodManager)  getSystemService(Activity.INPUT_METHOD_SERVICE);
-                        inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-                    }
-                }
-            }catch(Exception e){
-                Log.d(log_name, "exception");
-                e.printStackTrace();
-            }
+    /**
+     * Showing google speech input dialog
+     * */
+    private void promptSpeechInput() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "請大聲說出你的答案。");
+        try {
+            startActivityForResult(intent, 100);
+        } catch (ActivityNotFoundException a) {
+            Toast.makeText(getApplicationContext(), "Not supported", Toast.LENGTH_SHORT).show();
         }
-
-        @Override
-        public void afterTextChanged(Editable s) {
-            if (s.toString().equals("") && chance >= 2){
-                if (!isButtonSendChanged2Abstain){
-                    isButtonSendChanged2Abstain = true;
-                    buttonSend.setImageResource(R.drawable.ic_flag_black_36dp);
-                    buttonSend.setOnClickListener(onClickListener4AbstainButton);
-                }
-            }else{
-                if (isButtonSendChanged2Abstain){
-                    isButtonSendChanged2Abstain = false;
-                    buttonSend.setImageResource(R.drawable.ic_send_black_36dp);
-                    buttonSend.setOnClickListener(onClickListener4SendButton);
-                }
+    }
+    private void showVoicInputSelectionDialog(ArrayList<String> result){
+        LinearLayout layout = (LinearLayout)LayoutInflater.from(GameWindowWithAudio.this).inflate(R.layout.voice_input_window, null);
+        ArrayAdapter adapter = new ArrayAdapter(this,
+                android.R.layout.simple_list_item_1, android.R.id.text1, result);
+        final ListView listView = (ListView)layout.findViewById(R.id.list_view_voice_input);
+        listView.setEmptyView(layout.findViewById(R.id.txt_empty_view_4_voice_input_listview));
+        //set dialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(GameWindowWithAudio.this);
+        builder.setView(layout);
+        builder.setCancelable(false);
+        final AlertDialog alertDialog = builder.create();
+        layout.findViewById(R.id.ib_voice_input_retry).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+                promptSpeechInput();
             }
-        }
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        });
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                alertDialog.dismiss();
+                String word = (String)listView.getItemAtPosition(position);
+                gameActionListener.wordSubmitted(word);
+            }
+        });
+        alertDialog.show();
+    }
+    /**
+     * Receiving speech input
+     * */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case 100: {
+                if (resultCode == RESULT_OK && null != data) {
+                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    showVoicInputSelectionDialog(result);
+                }else if (resultCode == RecognizerIntent.RESULT_NO_MATCH){
 
+                }else if (resultCode == RecognizerIntent.RESULT_AUDIO_ERROR){
+
+                }else{
+
+                }
+                break;
+            }
         }
     }
 }

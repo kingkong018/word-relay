@@ -4,15 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/background"
-    tools:context="com.dreamershk.projectshiritori.GameWindow">
-
+    tools:context="com.dreamershk.projectshiritori.GameWindowWithAudio"
+    android:background="@drawable/background">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
-        android:orientation="horizontal"
-        >
+        android:orientation="horizontal">
         <TextView
             android:id="@+id/tv_score"
             android:layout_width="wrap_content"
@@ -79,75 +77,81 @@
         android:layout_height="0dip"
         android:layout_weight="1"
         android:paddingLeft="10dp"
-        android:paddingRight="10dp">
-        <ListView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/listview_multiplayer_bubbles">
-        </ListView>
-        <TextView
-            android:id="@+id/emptyview_listview_multiplayer_bubbles"
+        android:paddingRight="10dp"
+        android:id="@+id/relative_layout_canva">
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:textSize="45sp"
-            android:text="請稍等。"
-            android:visibility="visible"/>
+            android:orientation="horizontal"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="6dp"
+            android:gravity="center_vertical"
+            android:id="@+id/linearLayout2">
+            <android.support.design.widget.FloatingActionButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_markunread_mailbox_white_36dp"
+                android:id="@+id/floating_button_system_message"
+                android:visibility="gone" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="4dp"
+                android:id="@+id/txt_system_message"
+                android:hint="This is where the system message locates. Testing for three lines. I think 2 lines is better."
+                android:paddingLeft="4dp"
+                android:background="#faf8f6dc"
+                android:visibility="gone"
+                android:gravity="center_vertical|center_horizontal"
+                android:textStyle="bold"
+                android:layout_marginLeft="4dp" />
+
+        </LinearLayout>
+
     </RelativeLayout>
 
     <include
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        layout="@layout/popup_window_for_game_action"
+        layout="@layout/game_action_window"
         android:id="@+id/pop_up_window"
         android:layout_gravity="center_horizontal"
         android:layout_weight="0"
         />
 
     //Bottom bar: hidden action, enter text, send button.
-    <LinearLayout
-        android:id="@+id/linear_layout_bottom_bar"
+    <RelativeLayout
+        android:id="@+id/relative_layout_bottom_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="#FFFFFF"
-        android:visibility="gone">
-
+        android:background="#2eb8ab"
+        android:visibility="gone"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp">
         <ImageButton
-            android:id="@+id/ib_action"
+            android:id="@+id/iv_show_voice_bar"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:background="#ffffff"
-            android:src="@drawable/ic_open_in_browser_black_36dp"
-            android:paddingRight="3dp"/>
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1">
-            <EditText
-                android:id="@+id/et_lastChar"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:inputType="none"/>
-            <EditText
-                android:id="@+id/et_input"
-                android:layout_height="wrap_content"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                />
-        </LinearLayout>
-
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_keyboard_arrow_left_white_18dp"
+            android:background="#2eb8ab"
+            android:padding="3dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
         <ImageButton
-            android:id="@+id/ib_send"
+            android:id="@+id/ib_voice_input"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:background="#FFFFFF"
-            android:src="@drawable/ic_send_black_36dp"
-            android:paddingLeft="3dp"/>
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_settings_voice_white_48dp"
+            android:background="#2eb8ab"
+            android:layout_centerInParent="true" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -159,5 +163,4 @@
         android:visibility="visible">
 
     </LinearLayout>
-
 </LinearLayout>

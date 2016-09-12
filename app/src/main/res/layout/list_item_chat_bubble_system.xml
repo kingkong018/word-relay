@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingBottom="5dp"
-    android:paddingTop="5dp">
+    android:paddingTop="5dp"
+    android:background="#3d80cbc4">
 
     <ImageView
         android:id="@+id/system_icon"
@@ -12,13 +13,15 @@
         android:paddingRight="5dp"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:src="@drawable/default_profile_icon"/>
+        android:src="@drawable/default_profile_icon"
+        android:layout_centerVertical="true" />
 
     <RelativeLayout
         android:layout_width="wrap_content"
         android:background="@drawable/balloon_incoming_normal"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/system_icon">
+        android:layout_toRightOf="@+id/system_icon"
+        android:layout_centerVertical="true">
 
         <LinearLayout
             android:id="@+id/linear_layout_chat_bubble"
