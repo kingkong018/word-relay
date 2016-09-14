@@ -27,7 +27,7 @@ public abstract class GameManager {
     public static int ABSTAIN_POINT = 10;
     public static int HELP_POINT = 20;
     public static int ASSIGN_POINT = 50;
-    public static int REVERSE_POINT = 31;
+    public static int REVERSE_POINT = 30;
     public static int SKIP_POINT = 20;
 
     private String SYSTEM_TAG = "this is the system administrator, my name is system administrator";
