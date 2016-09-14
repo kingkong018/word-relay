@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "525333370727",
+    "firebase_url": "https://word-relay.firebaseio.com",
+    "project_id": "word-relay",
+    "storage_bucket": "word-relay.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:525333370727:android:de750fd8834db8b9",
+        "android_client_info": {
+          "package_name": "com.dreamershk.projectshiritori"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "525333370727-pso1cmvkt30b6u4169o9vbvac110asfu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5sl0a-bGU1D5Qytc-1E-LbjB5GCLE2QY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

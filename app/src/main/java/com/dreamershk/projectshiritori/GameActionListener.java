@@ -33,4 +33,5 @@ public interface GameActionListener {
     public List<Player> getPlayerQueue();
     public void timeUp();
     public void timeAlmostUp();
+    public List<String> getWordList();
 }

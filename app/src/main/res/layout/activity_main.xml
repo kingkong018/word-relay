@@ -57,6 +57,7 @@
             android:layout_weight="1"
             android:text="單人遊戲(語音輸入版)"
             android:id="@+id/button_single_game_with_audio" />
+
         <Spinner
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -683,6 +683,9 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             finish();
+                            //TODO: ask for unwanted word.
+                            final List<String> history = gameActionListener.getWordList();
+
                         }
                     });
                     LinearLayout linearLayout = (LinearLayout)LayoutInflater.from(GameWindowWithCanva.this).inflate(R.layout.ranking, null);

@@ -181,6 +181,11 @@ public abstract class GameManager {
         public void timeAlmostUp() {
             mediaPlayer[1].start();
         }
+
+        @Override
+        public List<String> getWordList() {
+            return history;
+        }
     }
 
     //overidden required in Multi-Game
