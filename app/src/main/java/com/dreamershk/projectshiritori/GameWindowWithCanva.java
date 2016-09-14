@@ -39,6 +39,8 @@ import com.dreamershk.projectshiritori.model.CirculateMessage;
 import com.dreamershk.projectshiritori.model.Player;
 import com.dreamershk.projectshiritori.model.SystemMessage;
 import com.dreamershk.projectshiritori.model.UserType;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -682,10 +684,50 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
                     builder.setNegativeButton("結束", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            finish();
                             //TODO: ask for unwanted word.
-                            final List<String> history = gameActionListener.getWordList();
-
+                            AlertDialog dialog2;
+                            final List<CharSequence> selectedItems = new ArrayList<CharSequence>();
+                            final List<String> list = gameActionListener.getWordList();
+                            final CharSequence[] history = list.toArray(new CharSequence[list.size()]);
+                            AlertDialog.Builder builder2 = new AlertDialog.Builder(GameWindowWithCanva.this);
+                            builder2.setTitle("請剔除不恰當的詞語");
+                            builder2.setMultiChoiceItems(history, null,
+                                    new DialogInterface.OnMultiChoiceClickListener() {
+                                        // indexSelected contains the index of item (of which checkbox checked)
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int indexSelected,
+                                                            boolean isChecked) {
+                                            if (isChecked) {
+                                                // If the user checked the item, add it to the selected items
+                                                // write your code when user checked the checkbox
+                                                selectedItems.add(history[indexSelected]);
+                                            } else if (selectedItems.contains(history[indexSelected])) {
+                                                // Else, if the item is already in the array, remove it
+                                                // write your code when user Uchecked the checkbox
+                                                selectedItems.remove(history[indexSelected]);
+                                            }
+                                        }
+                                    })
+                                    // Set the action buttons
+                                    .setPositiveButton("確認", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            //  Your code when user clicked on OK
+                                            //  You can write the code  to save the selected item here
+                                            Thread t = new Thread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    DatabaseReference mDatabase;
+                                                    mDatabase = FirebaseDatabase.getInstance().getReference();
+                                                    mDatabase.child("unwanted-word").push().setValue(selectedItems);
+                                                }
+                                            });
+                                            t.start();
+                                            finish();
+                                        }
+                                    });
+                            dialog2 = builder2.create();//AlertDialog dialog; create like this outside onClick
+                            dialog2.show();
                         }
                     });
                     LinearLayout linearLayout = (LinearLayout)LayoutInflater.from(GameWindowWithCanva.this).inflate(R.layout.ranking, null);
