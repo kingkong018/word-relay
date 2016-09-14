@@ -382,7 +382,8 @@ public abstract class GameManager {
             }
         }
         //play sound effect
-        mediaPlayer[0].start();
+        if (mediaPlayer[0] != null)
+            mediaPlayer[0].start();
     }
     private void setPlayerQueueBar(List<Player> playerList, Player currentPlayer, Player leftPlayer){
         for (Player p : playerList){
