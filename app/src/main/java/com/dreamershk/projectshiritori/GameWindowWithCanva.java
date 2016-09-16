@@ -2,12 +2,15 @@ package com.dreamershk.projectshiritori;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.CountDownTimer;
+import android.speech.RecognizerIntent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -15,13 +18,17 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -44,13 +51,14 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class GameWindowWithCanva extends AppCompatActivity implements GameView {
 
     protected String log_name= "GAMEWINDOWWITHCANVA";
     //UI elements
     ProgressDialog loadingDialog;
-    boolean isLoadingDialogClosed, isPlayerQueueBarInitialized, isButtonSendChanged2Abstain;
+    boolean isLoadingDialogClosed, isPlayerQueueBarInitialized, isButtonSendChanged2Abstain, isButtonSendChangedToVoiceInput;
     AlertDialog startGameAlertDialog, assignWindowAlertDialog;
     ProgressBar pb;
     EditText et_input, et_lastChar;
@@ -60,7 +68,7 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
 
     PopupWindow popupWindow4Action;
     View popupWindowView;
-    View.OnClickListener onClickListener4SendButton, onClickListener4AbstainButton;
+    View.OnClickListener onClickListener4SendButton, onClickListener4AbstainButton, onClickListener4VoiceInput;
     LinearLayout linear_layout_bottom_pop_up_window, linear_layout_4_button_skip, linear_layout_4_button_abstain,
             linear_layout_4_button_reverse, linear_layout_4_button_assign,linear_layout_4_button_help, linear_layout_queue_bar,
             linear_layout_bottom_bar, linear_layout_system_message_box;
@@ -143,6 +151,12 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
                 inputMethodManager.hideSoftInputFromWindow(canva.getWindowToken(), 0);
             }
         };
+        onClickListener4VoiceInput = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                promptSpeechInput();
+            }
+        };
         buttonSend.setOnClickListener(onClickListener4SendButton);
         //Set up textfields: tv_score, tv_round
         tv_score = (TextView)findViewById(R.id.tv_score);
@@ -153,6 +167,7 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
         image_life3 = (ImageView)findViewById(R.id.image_life3);
         //
         canva = (RelativeLayout)findViewById(R.id.relative_layout_canva);
+        canva.setOnDragListener(new MyDragListener());
         //
         linear_layout_system_message_box = (LinearLayout)LayoutInflater.from(GameWindowWithCanva.this).inflate(R.layout.system_message_window, null, false);
         floatingActionButtonSystemMessage = (FloatingActionButton)findViewById(R.id.floating_button_system_message);
@@ -201,24 +216,28 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
                 if (assignWindowAlertDialog != null) assignWindowAlertDialog.show();
             }
         });
+        buttonAssign.setEnabled(false);
         buttonSkip = (ImageButton) linear_layout_bottom_pop_up_window.findViewById(R.id.button_skip);
         buttonSkip.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 gameActionListener.skip();
             }
         });
+        buttonSkip.setEnabled(false);
         buttonReverse = (ImageButton) linear_layout_bottom_pop_up_window.findViewById(R.id.button_reverse);
         buttonReverse.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 gameActionListener.reverse();
             }
         });
+        buttonReverse.setEnabled(false);
         buttonHelp = (ImageButton) linear_layout_bottom_pop_up_window.findViewById(R.id.button_help);
         buttonHelp.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 gameActionListener.help();
             }
         });
+        buttonHelp.setEnabled(false);
         tv_abstain_button = (TextView) linear_layout_bottom_pop_up_window.findViewById(R.id.tv_abstain_button);
         tv_help_button = (TextView) linear_layout_bottom_pop_up_window.findViewById(R.id.tv_help_button);
         tv_assign_button = (TextView) linear_layout_bottom_pop_up_window.findViewById(R.id.tv_assign_button);
@@ -344,7 +363,7 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
         int canvaHeight = canva.getHeight();
         int canvaWidth = canva.getWidth();
         final int size = (int)(Math.random() * (canvaHeight / 20)) + 25;
-        final int rotation = (int)(Math.random() * 60) - 60;
+        final int rotation = (int)(60 - Math.random() * 120);
         int a,r,g,b;
             a = (int)(Math.random() * 115) + 140;
             r = (int)(Math.random() * 256);
@@ -375,12 +394,13 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
             public void run() {
                 View v = canva.getChildAt(canva.getChildCount()-1); //Get the system message and button.
                 canva.removeViewAt(canva.getChildCount()-1); //remove it first and add back afterwards.
-                TextView textView = new TextView(GameWindowWithCanva.this);
+                final TextView textView = new TextView(GameWindowWithCanva.this);
                 textView.setText(message);
                 textView.setTextSize(size);
                 textView.setRotation(rotation);
                 textView.setTextColor(color);
                 textView.setLayoutParams(layoutParams);
+                textView.setOnTouchListener(new MyTouchListener());
                 canva.addView(textView);
                 canva.addView(v); //add back the message and button so that they are on the top.
                 numberOfWordInCanva++;
@@ -720,6 +740,7 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
                                                     DatabaseReference mDatabase;
                                                     mDatabase = FirebaseDatabase.getInstance().getReference();
                                                     mDatabase.child("unwanted-word").push().setValue(selectedItems);
+                                                    mDatabase.child("invalid-word").push().setValue(gameActionListener.getInvalidWordList());
                                                 }
                                             });
                                             t.start();
@@ -776,6 +797,119 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
         startActivity(intent);
     }
 
+    /**
+     * Showing google speech input dialog
+     * */
+    private void promptSpeechInput() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "請大聲說出你的答案。");
+        try {
+            startActivityForResult(intent, 100);
+        } catch (ActivityNotFoundException a) {
+            Toast.makeText(getApplicationContext(), "Not supported", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void showVoicInputSelectionDialog(ArrayList<String> result){
+        LinearLayout layout = (LinearLayout)LayoutInflater.from(GameWindowWithCanva.this).inflate(R.layout.voice_input_window, null);
+        ArrayAdapter adapter = new ArrayAdapter(this,
+                android.R.layout.simple_list_item_1, android.R.id.text1, result);
+        final ListView listView = (ListView)layout.findViewById(R.id.list_view_voice_input);
+        listView.setEmptyView(layout.findViewById(R.id.txt_empty_view_4_voice_input_listview));
+        //set dialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(GameWindowWithCanva.this);
+        builder.setView(layout);
+        builder.setCancelable(false);
+        final AlertDialog alertDialog = builder.create();
+        layout.findViewById(R.id.ib_voice_input_retry).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+                promptSpeechInput();
+            }
+        });
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                alertDialog.dismiss();
+                String word = (String)listView.getItemAtPosition(position);
+                gameActionListener.wordSubmitted(word);
+            }
+        });
+        alertDialog.show();
+    }
+    /**
+     * Receiving speech input
+     * */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case 100: {
+                if (resultCode == RESULT_OK && null != data) {
+                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    showVoicInputSelectionDialog(result);
+                }else if (resultCode == RecognizerIntent.RESULT_NO_MATCH){
+
+                }else if (resultCode == RecognizerIntent.RESULT_AUDIO_ERROR){
+
+                }else{
+
+                }
+                break;
+            }
+        }
+    }
+
+    private final class MyTouchListener implements View.OnTouchListener{
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                ClipData data = ClipData.newPlainText("", "");
+                View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(
+                        v);
+                v.startDrag(data, shadowBuilder, v, 0);
+                v.setVisibility(View.INVISIBLE);
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+    private final class MyDragListener implements View.OnDragListener {
+        @Override
+        public boolean onDrag(View v, DragEvent event) {
+            int action = event.getAction();
+            switch (action) {
+                case DragEvent.ACTION_DRAG_STARTED:
+                    // do nothing
+                    break;
+                case DragEvent.ACTION_DRAG_ENTERED:
+                    // do nothing
+                    break;
+                case DragEvent.ACTION_DRAG_EXITED:
+                    // do nothing
+                    break;
+                case DragEvent.ACTION_DROP:
+                    // Dropped, reassign View to ViewGroup
+                    View view = (View) event.getLocalState();
+                    view.setX(event.getX());
+                    view.setY(event.getY());
+                    view.setVisibility(View.VISIBLE);
+                    break;
+                case DragEvent.ACTION_DRAG_ENDED:
+                    // do nothing
+                    break;
+                default:
+                    break;
+            }
+            return true;
+        }
+    }
+
     private class GameTextWatcher implements TextWatcher {
         String log_name = "GAMETEXTWATCHER";
         @Override
@@ -803,6 +937,20 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
 
         @Override
         public void afterTextChanged(Editable s) {
+            if (s.toString().equals("")){
+                if (!isButtonSendChangedToVoiceInput){
+                    isButtonSendChangedToVoiceInput = true;
+                    buttonSend.setImageResource(R.drawable.ic_settings_voice_black_36dp);
+                    buttonSend.setOnClickListener(onClickListener4VoiceInput);
+                }
+            }else{
+                if (isButtonSendChangedToVoiceInput){
+                    isButtonSendChangedToVoiceInput = false;
+                    buttonSend.setImageResource(R.drawable.ic_send_black_36dp);
+                    buttonSend.setOnClickListener(onClickListener4SendButton);
+                }
+            }
+            /** change to abstain button
             if (s.toString().equals("") && chance >= 2){
                 if (!isButtonSendChanged2Abstain){
                     isButtonSendChanged2Abstain = true;
@@ -815,7 +963,7 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
                     buttonSend.setImageResource(R.drawable.ic_send_black_36dp);
                     buttonSend.setOnClickListener(onClickListener4SendButton);
                 }
-            }
+            }**/
         }
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {

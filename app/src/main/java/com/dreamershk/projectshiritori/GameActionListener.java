@@ -34,4 +34,5 @@ public interface GameActionListener {
     public void timeUp();
     public void timeAlmostUp();
     public List<String> getWordList();
+    public List<String> getInvalidWordList();
 }

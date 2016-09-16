@@ -157,6 +157,11 @@ public class RemoteGameActionHandler implements GameActionListener, Runnable {
     }
 
     @Override
+    public List<String> getInvalidWordList() {
+        return null;
+    }
+
+    @Override
     public void run() {
         try {
             while(true) {

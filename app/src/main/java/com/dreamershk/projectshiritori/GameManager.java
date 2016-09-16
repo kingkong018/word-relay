@@ -45,6 +45,7 @@ public abstract class GameManager {
     protected String answer, lastValidWord;
     //
     ArrayList<String> history;
+    ArrayList<String> invalidWordHistory;
     //
     boolean isStarted, isOver, isLastWonPlayerLostInThisTurn;
 
@@ -53,7 +54,7 @@ public abstract class GameManager {
         playerQueue = new ArrayList<Player>();
         //database = new ArrayList<String>();
         history = new ArrayList<String>();
-
+        invalidWordHistory = new ArrayList<String>();
     }
     /*public static GameManager getGameManagerInstance() {
         if (instance == null)
@@ -185,6 +186,11 @@ public abstract class GameManager {
         @Override
         public List<String> getWordList() {
             return history;
+        }
+
+        @Override
+        public List<String> getInvalidWordList() {
+            return invalidWordHistory;
         }
     }
 
@@ -334,6 +340,7 @@ public abstract class GameManager {
                     addChatBubble(author, answer, currentPlayer.getScore(), currentPlayer.getChance(), currentPlayer.getRound(), currentPlayer.getIconResId());
                     if (!isAWord) {
                         circulateMessage.setMessage(SystemMessage.WORD_DOES_NOT_EXIST);
+                        invalidWordHistory.add(answer);
                     } else if (isExist) {
                         circulateMessage.setMessage(SystemMessage.WORD_REPEATED);
                     } else if (!isValid) {
@@ -382,7 +389,7 @@ public abstract class GameManager {
             }
         }
         //play sound effect
-        mediaPlayer[0].start();
+        if (mediaPlayer[0] !=null )mediaPlayer[0].start();
     }
     private void setPlayerQueueBar(List<Player> playerList, Player currentPlayer, Player leftPlayer){
         for (Player p : playerList){

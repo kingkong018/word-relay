@@ -25,7 +25,8 @@
             android:gravity="center_horizontal"
             android:paddingBottom="2dp"
             android:background="#f0bdb7b7"
-            android:id="@+id/linear_layout_4_button_skip">
+            android:id="@+id/linear_layout_4_button_skip"
+            android:clickable="false">
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
