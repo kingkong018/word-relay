@@ -428,22 +428,7 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
                 buttonSend.setEnabled(true);
                 buttonAction.setEnabled(true);
                 setAssignPlayerWindow(gameActionListener.getPlayerQueue());
-                //start timer
-                countDownTimer = new CountDownTimer(maxTime*1000, 1000) {
-                    public void onTick(long millisUntilFinished) {
-                        long currentTime = maxTime - millisUntilFinished/1000;
-                        int progress = (int)(currentTime*100/maxTime);
-                        pb.setProgress(progress);
-                        if (millisUntilFinished <= 4500 && millisUntilFinished >=3000){
-                            gameActionListener.timeAlmostUp();
-                        }
-                    }
-                    public void onFinish() {
-                        gameActionListener.timeUp();
-                    }
-                };
-                countDownTimer.start();
-
+                startTimer();
             }
         });
     }
@@ -464,8 +449,7 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
                 buttonAction.setEnabled(false);
                 et_input.setInputType(EditorInfo.TYPE_NULL);
                 //timer & progresas bar
-                if (countDownTimer != null) countDownTimer.cancel();
-                pb.setProgress(0);
+                resetTimer();
                 //
                 if (isPopupWindowClicked){
                     isPopupWindowClicked = false;
@@ -481,6 +465,26 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
         });
     }
 
+    private void startTimer(){
+        countDownTimer = new CountDownTimer(maxTime*1000, 1000) {
+            public void onTick(long millisUntilFinished) {
+                long currentTime = maxTime - millisUntilFinished/1000;
+                int progress = (int)(currentTime*100/maxTime);
+                pb.setProgress(progress);
+                if (millisUntilFinished <= 4500 && millisUntilFinished >=3000){
+                    gameActionListener.timeAlmostUp();
+                }
+            }
+            public void onFinish() {
+                gameActionListener.timeUp();
+            }
+        };
+        countDownTimer.start();
+    }
+    private void resetTimer(){
+        if (countDownTimer != null) countDownTimer.cancel();
+        pb.setProgress(0);
+    }
     @Override
     //synchronized beacuse of the chance variable.
     public synchronized void setPlayerInfo(String name, int score, int chance, int round) {

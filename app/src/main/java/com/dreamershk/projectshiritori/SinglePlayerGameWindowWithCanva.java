@@ -19,14 +19,29 @@ public class SinglePlayerGameWindowWithCanva extends GameWindowWithCanva {
         final Context c = getApplicationContext();
         SinglePlayerGameManager.releaseGameManagerInstance();
         gameManager = SinglePlayerGameManager.getGameManagerInstance();
-        Player player = new Player(g, "玩家");
-        player.setIconResId(R.drawable.character_janice);
+        final Intent intent = getIntent();
+        Player player = new Player(g, intent.getExtras().getString("player_name"));
+        switch(intent.getExtras().getString("player_icon_name")){
+            case "angus":
+                player.setIconResId(R.drawable.character_angus);
+                break;
+            case "janice":
+                player.setIconResId(R.drawable.character_janice);
+                break;
+            case "kelvin":
+                player.setIconResId(R.drawable.character_kelvin);
+                break;
+            case "christy":
+                player.setIconResId(R.drawable.character_christy);
+                break;
+            default:
+                player.setIconResId(R.drawable.character_janice);
+        }
         player.setPlayerType(Player.TYPE_HUMAN);
         gameManager.addGameView(g, player);
         //context should be set after host player is in the player queue.
         gameManager.setContext(c);
         //set AI players
-        final Intent intent = getIntent();
         int numberOfAi = intent.getExtras().getInt("numberOfAi");
         for (int i = 0; i < numberOfAi; i++){
             Player computer = new Player(null, "電腦" + (i+1));
