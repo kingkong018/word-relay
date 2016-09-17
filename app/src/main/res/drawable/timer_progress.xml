@@ -1,28 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@android:id/background">
-        <shape android:shape="rectangle">
-            <solid android:drawable="@android:drawable/progress_horizontal"/>
-            <corners
-                android:bottomRightRadius="10dp"
-                android:topRightRadius="10dp"
-            />
+        <shape>
+            <gradient
+                android:startColor="#dde6e7"
+                android:centerColor="#dfe6e5"
+                android:centerY="0.75"
+                android:endColor="#fafcfc"
+                android:angle="270"
+                />
         </shape>
     </item>
+
+    <item android:id="@android:id/secondaryProgress">
+        <clip>
+            <shape>
+                <gradient
+                    android:startColor="#234"
+                    android:centerColor="#234"
+                    android:centerY="0.75"
+                    android:endColor="#a24"
+                    android:angle="270"
+                    />
+            </shape>
+        </clip>
+    </item>
+
     <item android:id="@android:id/progress">
         <clip>
             <shape>
                 <gradient
-                    android:startColor="#588f66"
-                    android:centerColor="#76b787"
-                    android:centerY="0.50"
-                    android:endColor="#588f66"
+                    android:startColor="#b4ddd0"
+                    android:centerColor="#c9e4e1"
+                    android:centerY="0.75"
+                    android:endColor="#aee3d9"
                     android:angle="270"
-                />
-                <corners
-                    android:bottomRightRadius="10dp"
-                    android:topRightRadius="10dp"
-                />
+                    />
             </shape>
         </clip>
     </item>

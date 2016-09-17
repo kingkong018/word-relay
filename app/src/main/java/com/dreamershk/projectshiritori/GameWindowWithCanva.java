@@ -63,8 +63,9 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
     ProgressBar pb;
     EditText et_input, et_lastChar;
     ImageButton buttonSend, buttonAction, buttonAbstain, buttonSkip, buttonReverse, buttonHelp, buttonAssign;
-    TextView tv_score, tv_round, tv_abstain_button, tv_help_button, tv_assign_button, tv_reverse_button, tv_skip_button, system_message;
-    ImageView image_life1, image_life2, image_life3;
+    TextView tv_abstain_button, tv_help_button, tv_assign_button, tv_reverse_button, tv_skip_button, system_message;
+    ImageView image_life1, image_life2, image_life3, image_score_hundreds_digit, image_score_tens_digit, image_score_units_digit,
+            image_round_hundreds_digit, image_round_tens_digit, image_round_units_digit;
 
     PopupWindow popupWindow4Action;
     View popupWindowView;
@@ -158,9 +159,13 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
             }
         };
         buttonSend.setOnClickListener(onClickListener4SendButton);
-        //Set up textfields: tv_score, tv_round
-        tv_score = (TextView)findViewById(R.id.tv_score);
-        tv_round = (TextView)findViewById(R.id.tv_round);
+        //Set up imagefields: tv_score, tv_round
+        image_score_hundreds_digit = (ImageView)findViewById(R.id.image_score_hundreds_digit);
+        image_score_tens_digit = (ImageView)findViewById(R.id.image_score_tens_digit);
+        image_score_units_digit = (ImageView)findViewById(R.id.image_score_units_digit);
+        image_round_hundreds_digit = (ImageView)findViewById(R.id.image_round_hundreds_digit);
+        image_round_tens_digit = (ImageView)findViewById(R.id.image_round_tens_digit);
+        image_round_units_digit = (ImageView)findViewById(R.id.image_round_units_digit);
         //Set up image view for three lifes
         image_life1 = (ImageView)findViewById(R.id.image_life1);
         image_life2 = (ImageView)findViewById(R.id.image_life2);
@@ -490,36 +495,75 @@ public class GameWindowWithCanva extends AppCompatActivity implements GameView {
     public synchronized void setPlayerInfo(String name, int score, int chance, int round) {
         this.chance = chance;
         final int s=score, c=chance, r=round;
+        final int[] numberResId = new int[]{R.drawable.number_0_36dp, R.drawable.number_1_36dp, R.drawable.number_2_36dp,
+                R.drawable.number_3_36dp, R.drawable.number_4_36dp, R.drawable.number_5_36dp, R.drawable.number_6_36dp,
+                R.drawable.number_7_36dp,R.drawable.number_8_36dp, R.drawable.number_9_36dp};
+        final int[] dottedNumberResId = new int[]{R.drawable.number_dotted_0_24dp, R.drawable.number_dotted_1_24dp, R.drawable.number_dotted_2_24dp,
+                R.drawable.number_dotted_3_24dp, R.drawable.number_dotted_4_24dp, R.drawable.number_dotted_5_24dp, R.drawable.number_dotted_6_24dp,
+                R.drawable.number_dotted_7_24dp,R.drawable.number_dotted_8_24dp, R.drawable.number_dotted_9_24dp};
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (s>9){
-                    tv_score.setText(s + "");
-                }else{
-                    tv_score.setText("0" + s);
+                //score
+                if (s>999){
+                    image_score_hundreds_digit.setImageResource(numberResId[9]);
+                    image_score_tens_digit.setImageResource(numberResId[9]);
+                    image_score_units_digit.setImageResource(numberResId[9]);
                 }
+                else if (s>99){
+                     image_score_hundreds_digit.setImageResource(numberResId[s/100]);
+                     image_score_tens_digit.setImageResource(numberResId[(s-(s/100)*100)/10]);
+                     image_score_units_digit.setImageResource(numberResId[s%10]);
+                }else if(s>9){
+                     image_score_hundreds_digit.setImageResource(numberResId[0]);
+                     image_score_tens_digit.setImageResource(numberResId[s/10]);
+                     image_score_units_digit.setImageResource(numberResId[s%10]);
+                }else{
+                     image_score_hundreds_digit.setImageResource(numberResId[0]);
+                     image_score_tens_digit.setImageResource(numberResId[0]);
+                     image_score_units_digit.setImageResource(numberResId[s]);
+                 }
+                //life
                 switch(c){
                     case 0:
-                        image_life1.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-                        image_life2.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-                        image_life3.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                        image_life1.setVisibility(View.GONE);
+                        image_life2.setVisibility(View.GONE);
+                        image_life3.setVisibility(View.GONE);
                         break;
                     case 1:
-                        image_life1.setImageResource(R.drawable.ic_favorite_black_24dp);
-                        image_life2.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-                        image_life3.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                        image_life1.setVisibility(View.VISIBLE);
+                        image_life2.setVisibility(View.GONE);
+                        image_life3.setVisibility(View.GONE);
                         break;
                     case 2:
-                        image_life1.setImageResource(R.drawable.ic_favorite_black_24dp);
-                        image_life2.setImageResource(R.drawable.ic_favorite_black_24dp);
-                        image_life3.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                        image_life1.setVisibility(View.VISIBLE);
+                        image_life2.setVisibility(View.VISIBLE);
+                        image_life3.setVisibility(View.GONE);
                         break;
                     default:
-                        image_life1.setImageResource(R.drawable.ic_favorite_black_24dp);
-                        image_life2.setImageResource(R.drawable.ic_favorite_black_24dp);
-                        image_life3.setImageResource(R.drawable.ic_favorite_black_24dp);
+                        image_life1.setVisibility(View.VISIBLE);
+                        image_life2.setVisibility(View.VISIBLE);
+                        image_life3.setVisibility(View.VISIBLE);
                 }
-                tv_round.setText(Integer.toString(r));
+                //round
+                if (r>999){
+                    image_round_hundreds_digit.setImageResource(dottedNumberResId[9]);
+                    image_round_tens_digit.setImageResource(dottedNumberResId[9]);
+                    image_round_units_digit.setImageResource(dottedNumberResId[9]);
+                }
+                else if (r>99){
+                    image_round_hundreds_digit.setImageResource(dottedNumberResId[r/100]);
+                    image_round_tens_digit.setImageResource(dottedNumberResId[(r-(r/100)*100)/10]);
+                    image_round_units_digit.setImageResource(dottedNumberResId[r%10]);
+                }else if(r>9){
+                    image_round_hundreds_digit.setImageResource(dottedNumberResId[0]);
+                    image_round_tens_digit.setImageResource(dottedNumberResId[r/10]);
+                    image_round_units_digit.setImageResource(dottedNumberResId[r%10]);
+                }else{
+                    image_round_hundreds_digit.setImageResource(dottedNumberResId[0]);
+                    image_round_tens_digit.setImageResource(dottedNumberResId[0]);
+                    image_round_units_digit.setImageResource(dottedNumberResId[r]);
+                }
             }
         });
     }
